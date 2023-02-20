@@ -61,6 +61,11 @@ function clear-obsolete-kind-context { #
   kubectl config delete-user $$CONTEXT
 }
 
+function image-loaded-check { # image-tag
+  local tag="$1"
+  docker image ls --format '{{.Repository}}:{{.Tag}}' | { grep "$tag" || true; } | wc -l | tr -d " "
+}
+
 function kind-create { # num name region zone
   # @./kind/20-kind-create.sh $(filter-out $@,$(MAKECMDGOALS))
 
@@ -142,7 +147,7 @@ containerdConfigPatches:
 EOF
 
   # KinD image
-  kind_img_loaded=$(docker image ls --format '{{.Repository}}:{{.Tag}}' | grep "kindest/node:${KIND_NODE_VERSION}" | wc -l | sed -e 's/ *//')
+  kind_img_loaded=$(image-loaded-check "kindest/node:${KIND_NODE_VERSION}")
   if [ ${kind_img_loaded} -ne 1 ]; then
     echo "Loading the KinD node image to the VM..."
     docker load < ${LIMA_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar
@@ -310,8 +315,8 @@ function config-network-end-to-end { #
   # depends: setup-kind-bridge setup-host-network setup-lima-network
 
   setup-kind-bridge
-  setup-host-network
-  setup-lima-network
+  # setup-host-network
+  # setup-lima-network
 }
 
 function test { #
@@ -333,7 +338,7 @@ function registries { #
   mkdir -p ${KIND_HOST_HOME_DIR}
 
   # DOCKER IMAGE CACHES ("registry v2" or "distribution:2.8.1")
-  registry_img_loaded=$(docker image ls --format '{{.Repository}}:{{.Tag}}' | grep "${REGISTRY_IMAGE_TAG}" | wc -l)
+  registry_img_loaded=$(image-loaded-check "$REGISTRY_IMAGE_TAG")
   if [ ${registry_img_loaded} -ne 1 ]; then
     echo "Loading the ${REGISTRY_IMAGE_TAG} image into the VM..."
     docker load < ${LIMA_DATA_DIR}/distribution-distribution-2.8.1.tar
@@ -516,17 +521,17 @@ function prepare-mac-host { #
     # replace forward slashes and colon by hyphens
     s=${img//\//-}
     TAR=${LIMA_DATA_DIR}/${s/:/-}.tar
-    # if [[ ! -f $TAR ]]; then
+    if [[ ! -f $TAR ]]; then
       docker pull $img
       docker save $img > $TAR
-    # fi
+    fi
   done
 
   # the img-tar xform for the kindest/node image is different ...
   TAR="${LIMA_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar"
-  # if [[ ! -f $TAR ]]; then
+  if [[ ! -f $TAR ]]; then
     img="kindest/node:${KIND_NODE_VERSION}"
     docker pull $img
     docker save $img > $TAR
-  # fi
+  fi
 }
