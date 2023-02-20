@@ -510,15 +510,24 @@ function prepare-mac-host { #
 
   # pull and save images
   for img in \
-      distribution-distribution-2.8.1 \
-      quay.io-metallb-controller-v0.11.0 \
-      quay.io-metallb-speaker-v0.11.0 \
-      kind-${KIND_NODE_VERSION}-image; do
-
-    TAR=${LIMA_DATA_DIR}/${img}.tar
+      distribution/distribution:2.8.1 \
+      quay.io/metallb/controller:v0.11.0 \
+      quay.io/metallb/speaker:v0.11.0
+  do
+    # replace forward slashes and colon by hyphens
+    s=${img//\//-}
+    TAR=${LIMA_DATA_DIR}/${s/:/-}.tar
     if [[ ! -f $TAR ]]; then
       docker pull $img
       docker save $img > $TAR
     fi
   done
+
+  # the img-tar xform for the kindest/node image is different ...
+  TAR="${LIMA_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar"
+  if [[ ! -f $TAR ]]; then
+    img="kindest/node:${KIND_NODE_VERSION}"
+    docker pull $img
+    docker save $img > $TAR
+  fi
 }
