@@ -52,7 +52,7 @@ local
     {
       location: host_workdir,
       mountPoint: "/workdir",
-      writable: true
+      writable: false
     },
     {
       location: "/tmp/" + datadir,

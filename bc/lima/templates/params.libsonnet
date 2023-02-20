@@ -4,7 +4,7 @@ local args = import 'args.libsonnet';
 {
   macstudio: {
     ssh: {
-      localPort: 60006 + std.parseInt(std.strReplace(args.vm_name, 'bc', ''))
+      localPort: 60006 + args.vm_index
     },
     misc: {
       limaTop: "lima"
