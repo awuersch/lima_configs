@@ -141,7 +141,7 @@ containerdConfigPatches:
 EOF
 
   # KinD image
-  kind_img_loaded=$(docker image ls --format '{{.Repository}}:{{.Tag}}' | grep "kindest/node:${KIND_NODE_VERSION}" | wc -l)
+  kind_img_loaded=$(docker image ls --format '{{.Repository}}:{{.Tag}}' | grep "kindest/node:${KIND_NODE_VERSION}" | wc -l | sed -e 's/ *//')
   if [ ${kind_img_loaded} -ne 1 ]; then
     echo "Loading the KinD node image to the VM..."
     docker load < ${LIMA_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar
@@ -517,17 +517,17 @@ function prepare-mac-host { #
     # replace forward slashes and colon by hyphens
     s=${img//\//-}
     TAR=${LIMA_DATA_DIR}/${s/:/-}.tar
-    if [[ ! -f $TAR ]]; then
+    # if [[ ! -f $TAR ]]; then
       docker pull $img
       docker save $img > $TAR
-    fi
+    # fi
   done
 
   # the img-tar xform for the kindest/node image is different ...
   TAR="${LIMA_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar"
-  if [[ ! -f $TAR ]]; then
+  # if [[ ! -f $TAR ]]; then
     img="kindest/node:${KIND_NODE_VERSION}"
     docker pull $img
     docker save $img > $TAR
-  fi
+  # fi
 }
