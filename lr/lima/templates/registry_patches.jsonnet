@@ -20,7 +20,7 @@ local
     endpoint: ["http://registry-" + domain + ":" + gen_port(index)]
   },
   mirrors_rest = {
-    tls: { insecure_skip_verify: "true" }
+    tls: { insecure_skip_verify: true }
   },
 
   indexes(arr) = std.range(0, std.length(arr) - 1),
