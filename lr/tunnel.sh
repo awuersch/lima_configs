@@ -29,11 +29,14 @@ pk=${LIMA_HOME:-$HOME/.lima}/_config/user
 # get vm ssh localPort
 sshlp=$(limactl list --json $vm | jq -r .sshLocalPort)
 
+# get json
+json="$(kubectl --context $cluster get svc --output json --namespace $ns $svc)"
+
 # get service ip
-svcip=$(kubectl --context $cluster get svc --output json --namespace $ns $svc | jq -r '.status.loadBalancer.ingress[0].ip')
+svcip=$(echo "$json" | jq -r '.status.loadBalancer.ingress[0].ip')
 
 # get service port
-svcp=$(kubectl --context $cluster get svc --output json --namespace $ns $svc | jq -r '.spec.ports[0].port')
+svcp=$(echo "$json" | jq -r '.spec.ports[0].port')
 
 # put ssh to port in background
 ssh -fN -i $pk -L $p:$svcip:$svcp -o Hostname=127.0.0.1 -o Port=$sshlp lima-$vm

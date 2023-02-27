@@ -447,8 +447,8 @@ function prepare-mac-host { #
   # ./macos-setup/05-prepare-mac-host.sh
 
   # docker work dir and cache dirs
-  sudo mkdir -p ${LIMA_HOST_DATA_DIR}
-  sudo chown $(whoami) ${LIMA_HOST_DATA_DIR}
+  mkdir -p ${LIMA_HOST_DATA_DIR}
+  # sudo chown $(whoami) ${LIMA_HOST_DATA_DIR}
 
   # pull and save images
   for img in \

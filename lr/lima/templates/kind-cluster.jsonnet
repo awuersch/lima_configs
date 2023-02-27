@@ -13,21 +13,51 @@ local
   "nodes": [
     {
       "role": "control-plane",
-      "extraPortMappings": [
-        {
-          "containerPort": 6443,
-          "hostPort": 7001
-        }
-      ]
+      "labels": {
+         "ingress-ready": true,
+         "topology.kubernetes.io/zone": "zone-a"
+      }
+    },
+    {
+      "role": "control-plane",
+      "labels": {
+         "topology.kubernetes.io/zone": "zone-b"
+      }
+    },
+    {
+      "role": "control-plane",
+      "labels": {
+         "topology.kubernetes.io/zone": "zone-c"
+      }
+    },
+    {
+      "role": "worker",
+      "labels": {
+         "topology.kubernetes.io/zone": "zone-a"
+      }
+    },
+    {
+      "role": "worker",
+      "labels": {
+         "topology.kubernetes.io/zone": "zone-b"
+      }
+    },
+    {
+      "role": "worker",
+      "labels": {
+         "topology.kubernetes.io/zone": "zone-c"
+      }
     }
   ],
   "networking": {
-    "serviceSubnet": "10." + service_subnet_nibble + ".0.0/16",
-    "podSubnet": "10." + pod_subnet_nibble + ".0.0/16"
+    "disableDefaultCNI": true,
+    "kubeProxyMode": "none",
+    "podSubnet": "10." + pod_subnet_nibble + ".0.0/16",
+    "serviceSubnet": "10." + service_subnet_nibble + ".0.0/16"
   },
-  "kubeadmConfigPatches": [
-    kubeadm_patch
-  ],
+  # "kubeadmConfigPatches": [
+  #   kubeadm_patch
+  # ],
   "containerdConfigPatches": [
     containerd_patches
   ]
