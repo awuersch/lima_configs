@@ -1,14 +1,17 @@
+[[ -z "${LIMA_INSTANCE}" ]] && {
+  >&2 echo "env needs LIMA_INSTANCE set and nonempty"
+  exit 1
+}
+
+export LIMA_GROUP=${LIMA_INSTANCE%[0-9]*}
+
 # This project (git clone)
 export WORKSPACE=$HOME/workspace
 export WORKSPACE_HOME=$WORKSPACE/home
 export VMS=$WORKSPACE/vms
 
-export LIMA_GROUP=lr
-export LIMA_INSTANCE=${LIMA_GROUP}0
-
 # variables used with both host and vm
 export LIMA_GROUP_DIR=lima/$LIMA_GROUP
-export LIMA_INSTANCE_DIR=lima/$LIMA_INSTANCE
 export LIMA_CIDATA_USER=tony
 
 # host variables
@@ -18,7 +21,10 @@ export HOST_INSTANCE_HOME=$HOST_HOME/$LIMA_INSTANCE
 export KUBE_HOST_DIR=$HOST_INSTANCE_HOME/.kube
 export KIND_HOST_HOME_DIR=$KUBE_HOST_DIR/kind
 # Where to store the VM data like OCI image archives, etc.
-export LIMA_HOST_DATA_DIR=/opt/lima/$LIMA_INSTANCE
+export LIMA_DATA_DIR=/opt/lima
+export LIMA_HOST_DATA_DIR=$LIMA_DATA_DIR/$LIMA_INSTANCE
+# tmp directory
+export LIMA_HOST_TMP_DIR=/tmp/lima/$LIMA_INSTANCE
 
 # host variables with fixed names
 export LIMA_HOME=$HOST_HOME
