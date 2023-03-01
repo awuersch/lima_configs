@@ -16,10 +16,10 @@ local
     }
   },
 
-  configs_rest(domain, index) = {
+  configs_rest = {
     tls: { insecure_skip_verify: true }
   },
-  mirrors_rest = {
+  mirrors_rest(domain, index) = {
     endpoint: ["http://registry-" + domain + ":" + gen_port(index)]
   },
 
@@ -28,22 +28,22 @@ local
   registries = ["docker", "quay", "gcr"],
 
   config_plugins = [
-    plugin("configs", domain_io(registries[i]), configs_rest(domain_io(registries[i]), i))
+    plugin("configs", domain_io(registries[i]), configs_rest)
     for i in indexes(registries)
-  ] + [plugin("configs", "us-docker.pkg.dev", configs_rest("us-docker-pkg-dev", std.length(registries)))],
+  ] + [plugin("configs", "us-docker.pkg.dev", configs_rest)],
 
   mirror_plugins = [
-    plugin("mirrors", domain_io(registries[i]), mirrors_rest)
+    plugin("mirrors", domain_io(registries[i]), mirrors_rest(domain_io(registries[i]), i))
     for i in indexes(registries)
-  ] + [plugin("mirrors", "us-docker.pkg.dev", mirrors_rest)],
+  ] + [plugin("mirrors", "us-docker.pkg.dev", mirrors_rest("us-docker-pkg-dev", std.length(registries)))],
 
   indent = "  ",
   nl = "\n",
 
   indent_length = std.length(indent),
 
-  depth_configs_dict = 4,
-  depth_mirrors_dict = 5,
+  depth_configs_dict = 5,
+  depth_mirrors_dict = 4,
 
   config_tomls = [std.manifestTomlEx(d, indent) for d in config_plugins],
   mirror_tomls = [std.manifestTomlEx(d, indent) for d in mirror_plugins],
