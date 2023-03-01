@@ -20,4 +20,8 @@ kind-1-cilium.yaml:
 	echo '{ name: "1-cilium", nibble: 1 }' > templates/args.libsonnet
 	jsonnet templates/kind-cluster.jsonnet | yq -P > $@
 
+kind-2-cilium.yaml:
+	echo '{ name: "2-cilium", nibble: 2 }' > templates/args.libsonnet
+	jsonnet templates/kind-cluster.jsonnet | yq -P > $@
+
 .PHONY: clean

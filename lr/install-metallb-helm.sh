@@ -11,7 +11,7 @@ function errout {
 export LIMA_INSTANCE=$1; shift
 CLUSTER=$1; shift
 
-. ./env.sh
+. ./source-env.sh
 
 KUBE_CONTEXT=kind-$CLUSTER
 
