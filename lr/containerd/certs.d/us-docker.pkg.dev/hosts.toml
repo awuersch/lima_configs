@@ -1,0 +1,5 @@
+server = "https://us-docker.pkg.dev"
+
+[host."http://registry-us-docker-pkg-dev:5040"]
+  capabilities = ["pull", "resolve"]
+  skip_verify = true

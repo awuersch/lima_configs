@@ -1,0 +1,5 @@
+server = "https://gcr.io"
+
+[host."http://registry-gcrio:5020"]
+  capabilities = ["pull", "resolve"]
+  skip_verify = true

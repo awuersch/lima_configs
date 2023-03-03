@@ -1,0 +1,5 @@
+server = "https://k8s.gcr.io"
+
+[host."https://registry.k8s.io"]
+
+[host."https://k8s.gcr.io"]

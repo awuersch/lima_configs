@@ -1,0 +1,5 @@
+server = "https://quay.io"
+
+[host."http://registry-quayio:5010"]
+  capabilities = ["pull", "resolve"]
+  skip_verify = true

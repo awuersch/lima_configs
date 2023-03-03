@@ -1,0 +1,5 @@
+server = "https://registry-1.docker.io"
+
+[host."http://registry-dockerio:5030"]
+  capabilities = ["pull", "resolve"]
+  skip_verify = true
