@@ -24,4 +24,7 @@ kind-2-cilium.yaml:
 	echo '{ name: "2-cilium", nibble: 2 }' > templates/args.libsonnet
 	jsonnet templates/kind-cluster.jsonnet | yq -P > $@
 
+config.toml:
+	jsonnet -S templates/containerd-config.jsonnet > $@
+
 .PHONY: clean
