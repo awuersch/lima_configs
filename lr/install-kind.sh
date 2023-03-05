@@ -45,6 +45,7 @@ done
 # helm setup
 helm repo --kube-context $KUBE_CONTEXT add cilium https://helm.cilium.io/
 
+# we assume here the cluster name is "n-NAME" where "n" is a number
 # cilium install
 helm upgrade --install \
   cilium cilium/cilium \
@@ -55,6 +56,10 @@ helm upgrade --install \
 kubeProxyReplacement: strict
 k8sServiceHost: ${CLUSTER}-control-plane
 k8sServicePort: 6443
+cluster.name: $CLUSTER
+cluster.id: "${CLUSTER%%-*}"
+tunnel: disabled
+ipv4NativeRoutingCIDR: 10.0.0.0/9
 hostServices:
   enabled: true
 ingressController:
