@@ -56,15 +56,19 @@ helm upgrade --install \
 kubeProxyReplacement: strict
 k8sServiceHost: ${CLUSTER}-control-plane
 k8sServicePort: 6443
-cluster.name: $CLUSTER
-cluster.id: "${CLUSTER%%-*}"
-tunnel: disabled
 ipv4NativeRoutingCIDR: 10.0.0.0/9
-hostServices:
-  enabled: true
+autoDirectNodeRoutes: true
+tunnel: disabled
+cluster:
+  name: $CLUSTER
+  id: "${CLUSTER%%-*}"
 ingressController:
   enabled: true
   loadBalancerMode: dedicated
+hostServices:
+  enabled: true
+socketLB:
+  enabled: true
 externalIPs:
   enabled: true
 nodePort:
