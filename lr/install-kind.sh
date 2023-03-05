@@ -88,4 +88,4 @@ hubble:
 EOF
 
 # wait for status up
-cilium --context $KUBE_CONTEXT status --wait
+cilium --context $KUBE_CONTEXT status --output json --wait
