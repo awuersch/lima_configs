@@ -1,4 +1,4 @@
-server = "https://k8s.io"
+server = "https://registry.k8s.io"
 
 [host."http://registry-k8sio:5050"]
   capabilities = ["pull", "resolve"]

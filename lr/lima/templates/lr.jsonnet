@@ -25,13 +25,13 @@ local
   },
   images: [
     {
-      location: "https://cloud-images.ubuntu.com/releases/22.10/release-20230215/ubuntu-22.10-server-cloudimg-amd64.img",
-      digest: "sha256:5e5c68cb12002111032d3239ade3763ce25639f1287a59d2509a1603c2b1f7e6",
+      location: "https://cloud-images.ubuntu.com/releases/22.10/release-20230302/ubuntu-22.10-server-cloudimg-amd64.img",
+      digest: "sha256:f618c68e5510a1765f0184f0b048c713765ac1deaaaab55ce955ec86d84d4b8e",
       arch: "x86_64"
     },
     {
-      location: "https://cloud-images.ubuntu.com/releases/22.10/release-20230215/ubuntu-22.10-server-cloudimg-arm64.img",
-      digest: "sha256:76c350d3342d59f004040e1f66a5d7f64f8bc3465098afd0d7f83627b8b8523a",
+      location: "https://cloud-images.ubuntu.com/releases/22.10/release-20230302/ubuntu-22.10-server-cloudimg-arm64.img",
+      digest: "sha256:1ee82ef4f1d90f36790c18d9308c42224effc1674b48cf9f6b7418979cbd8950",
       arch: "aarch64"
     },
     {

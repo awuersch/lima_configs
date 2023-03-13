@@ -59,10 +59,10 @@ function setup_registry { # cache_dir cache_name domain port base_yml
     jsonnet ./lima/templates/cache-config.jsonnet | yq -P > ${KIND_HOST_HOME_DIR}/$base_yml
     echo "Starting $domain mirror"
     docker run \
+      --network kind \
       -d --restart=always -v ${KIND_VM_HOME_DIR}/$base_yml:/etc/docker/registry/config.yml -p $port:$port \
       -v $cache_dir:/var/lib/registry --name "$cache_name" "${REGISTRY_IMAGE_TAG}"
   fi
-  docker network connect kind $cache_name 2>/dev/null || true
 }
 
 function registries { #
@@ -99,10 +99,10 @@ function registries { #
   base_yml=grcio-cache-config.yml
   setup_registry $cache_dir $cache_name $domain $port $base_yml
 
-  # k8s.io mirror
+  # registry.k8s.io mirror
   cache_dir=${K8SIO_CACHE_DIR}
   cache_name=${K8SIO_CACHE_NAME}
-  domain=k8s.io
+  domain=registry.k8s.io
   port=${K8SIO_CACHE_PORT}
   base_yml=k8sio-cache-config.yml
   setup_registry $cache_dir $cache_name $domain $port $base_yml
@@ -133,6 +133,18 @@ export \
 prepare-mac-host
 
 mkdir -p ${KIND_HOST_HOME_DIR}
+
+echo "Creating the 'kind' docker network, type bridge"
+docker network create \
+    -d=bridge \
+    --scope=local \
+    --attachable=false \
+    --gateway=172.18.0.1 \
+    --ingress=false \
+    --internal=false \
+    --subnet=172.18.0.0/16 \
+    -o "com.docker.network.bridge.enable_ip_masquerade"="true" \
+    -o "com.docker.network.driver.mtu"="1500" kind || true
 
 # set up registries
 registries
