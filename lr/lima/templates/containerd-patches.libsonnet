@@ -25,7 +25,7 @@ local
 
   indexes(arr) = std.range(0, std.length(arr) - 1),
 
-  registries = ["docker", "quay", "gcr"],
+  registries = ["docker", "quay", "gcr", "k8s"],
 
   config_plugins = [
     plugin("configs", domain_io(registries[i]), configs_rest)

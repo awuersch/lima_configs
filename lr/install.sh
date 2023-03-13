@@ -99,6 +99,14 @@ function registries { #
   base_yml=grcio-cache-config.yml
   setup_registry $cache_dir $cache_name $domain $port $base_yml
 
+  # k8s.io mirror
+  cache_dir=${K8SIO_CACHE_DIR}
+  cache_name=${K8SIO_CACHE_NAME}
+  domain=k8s.io
+  port=${K8SIO_CACHE_PORT}
+  base_yml=k8sio-cache-config.yml
+  setup_registry $cache_dir $cache_name $domain $port $base_yml
+
   # us-docker.pkg.dev mirror
   cache_dir=${USDOCKERPKGDEV_CACHE_DIR}
   cache_name=${USDOCKERPKGDEV_CACHE_NAME}

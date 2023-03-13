@@ -54,6 +54,7 @@ export LIMA_BIN=$(which lima)
 
 # KinD
 #export KIND_NODE_VERSION=v1.24.0
+#export KIND_NODE_VERSION=v1.25.3
 export KIND_NODE_VERSION=v1.26.0
 
 # Registry mirrors
@@ -61,15 +62,15 @@ export REGISTRY_IMAGE_TAG="distribution/distribution:2.8.1"
 export DOCKERIO_CACHE_NAME='registry-dockerio'
 export QUAYIO_CACHE_NAME='registry-quayio'
 export GCRIO_CACHE_NAME='registry-gcrio'
-export K8SIO_CACHE_NAME='registry-k8sio'
 export USDOCKERPKGDEV_CACHE_NAME='registry-us-docker-pkg-dev'
 export DOCKERIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$DOCKERIO_CACHE_NAME
 export QUAYIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$QUAYIO_CACHE_NAME
 export GCRIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$GCRIO_CACHE_NAME
-export K8SIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$K8SIO_CACHE_NAME
 export USDOCKERPKGDEV_CACHE_DIR=${LIMA_DATA_DIR}/docker-registry-us-docker.pkg.dev
 export DOCKERIO_CACHE_PORT='5030'
 export QUAYIO_CACHE_PORT='5010'
 export GCRIO_CACHE_PORT='5020'
 export USDOCKERPKGDEV_CACHE_PORT='5040'
-export K8S_CACHE_PORT='5050'
+
+# DNS mirrors
+export DNS_IMAGE_TAG="distribution/distribution:2.8.1"
