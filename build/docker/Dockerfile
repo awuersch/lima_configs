@@ -1,8 +1,9 @@
 # syntax = docker/dockerfile:experimental
+# arm64v8
 FROM --platform=$TARGETPLATFORM debian:latest AS build
 
 # Environment
-ARG VERSION=4.2.0
+ARG VERSION=4.6.1
 ARG BUILD_BASE="build-essential make gawk autoconf automake lld libtool curl "
 ARG BUILD_PKGS="${BUILD_BASE} libexpat1-dev libssl-dev libevent-dev zlib1g-dev bison libfl-dev "
 ARG CFLAGS="-O2 -pthread -pipe -fPIC -fPIE -fomit-frame-pointer "
@@ -53,13 +54,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /usr/local/share/man/* \
     && mkdir -p /var/cache/nsd /var/run/nsd /etc/nsd/zones \
-    && chmod -R 0666 /var/run/nsd \
+    && chown -R 666 /var/run/nsd \
     && groupadd nsd \
     && useradd -g nsd -s /dev/null -d /etc nsd   
 
 # Final container
 FROM runtime
-LABEL maintainer="kometchtech <kometch@gmail.com>" \
+LABEL maintainer="tony <tony.wuersch@gmail.com>" \
       arch="$TARGETPLATFORM" \
       description="The NLnet Labs Name Server Daemon (NSD) is an authoritative DNS \
                   name server. It has been developed for operations in environments \
@@ -67,7 +68,7 @@ LABEL maintainer="kometchtech <kometch@gmail.com>" \
       url="https://nlnetlabs.nl/projects/nsd/about/"
 
 # Environment
-ENV TZ Asia/Tokyo
+ENV TZ America/New_York
 
 # publish port TCP and UDP
 EXPOSE 53/tcp 53/udp 8952/tcp
@@ -89,4 +90,3 @@ COPY --from=build /tmp/root/ /
 RUN ldconfig / \
     && chmod -R 0777 /tmp /var/cache/nsd \
     && chown -R nsd:nsd /var/cache/nsd /var/run/nsd /etc/nsd/zones
-
