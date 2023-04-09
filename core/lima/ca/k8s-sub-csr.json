@@ -1,0 +1,16 @@
+{
+    "CN": "Tony Home Intermediate CA",
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "Providence",
+            "O": "Tony Wuersch",
+            "OU": "CA",
+            "ST": "Rhode Island"
+        }
+    ]
+}

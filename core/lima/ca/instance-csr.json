@@ -1,0 +1,16 @@
+{
+  "CN": "system:node:INSTANCE",
+  "key": {
+    "algo": "ecdsa",
+    "size": 256
+  },
+  "names": [
+    {
+      "C": "US",
+      "L": "Providence",
+      "O": "system:nodes",
+      "OU": "Kubernetes Cluster",
+      "ST": "Rhode Island"
+    }
+  ]
+}
