@@ -9,7 +9,7 @@ if [ ! -e /etc/systemd/system/docker.socket.d/override.conf ]; then
   # Alternatively we could just add the user to the "docker" group, but that requires restarting the user session
   cat <<-EOF >/etc/systemd/system/docker.socket.d/override.conf
   [Socket]
-  SocketUser=${LIMA_CIDATA_USER}
+  SocketUser={{.User}}
 EOF
 fi
 export DEBIAN_FRONTEND=noninteractive
