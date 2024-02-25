@@ -13,26 +13,33 @@ CLUSTER=$1; shift
 
 . ./source-env.sh
 
+KUBE_CONTEXT=kind-${CLUSTER}
+
 # start kubernetes
 CLUSTER_CONFIG=./lima/kind-${CLUSTER}.yaml
 kind create cluster --config=${CLUSTER_CONFIG} --image kindest/node:${KIND_NODE_VERSION} --name $CLUSTER --retain
 
+# copy mirror registry specs with host.toml files
+for node in $(kind get nodes -n $CLUSTER); do
+   docker exec $node rm -rf /etc/contaienrd/certs.d
+   docker cp ./containerd/certs.d $node:/etc/containerd
+   docker exec $node chown -R root:root /etc/containerd/certs.d
+done
+
 KUBE_CONTEXT="kind-$CLUSTER"
 
 # taint nodes
-kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker node.cilium.io/agent-not-ready=true:NoSchedule
-kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker2 node.cilium.io/agent-not-ready=true:NoSchedule
-kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker3 node.cilium.io/agent-not-ready=true:NoSchedule
+# kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker node.cilium.io/agent-not-ready=true:NoSchedule
+# kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker2 node.cilium.io/agent-not-ready=true:NoSchedule
+# kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker3 node.cilium.io/agent-not-ready=true:NoSchedule
 
 # image loads
 for img in \
-    quay.io/cilium/cilium:v1.13.0 \
-    quay.io/metallb/controller:v0.13.7 \
-    quay.io/metallb/speaker:v0.13.7
+    quay.io/cilium/cilium:v1.15.1
 do
   # replace forward slashes and colon by hyphens
   s=${img//\//-}
-  TAR=${LIMA_DATA_DIR}/${s/:/-}.tar
+  TAR=${LIMA_HOST_DATA_DIR}/${s/:/-}.tar
   if [[ ! -f $TAR ]]; then
     docker pull $img
     docker save $img > $TAR
@@ -44,49 +51,66 @@ done
 
 # helm setup
 helm repo --kube-context $KUBE_CONTEXT add cilium https://helm.cilium.io/
+helm repo update --kube-context $KUBE_CONTEXT
 
 # we assume here the cluster name is "n-NAME" where "n" is a number
 # cilium install
 helm upgrade --install \
   cilium cilium/cilium \
   --kube-context $KUBE_CONTEXT \
-  --version 1.13.0 \
+  --version 1.15.1 \
   --namespace kube-system \
-  --values - <<EOF
-kubeProxyReplacement: strict
-k8sServiceHost: ${CLUSTER}-control-plane
-k8sServicePort: 6443
-ipv4NativeRoutingCIDR: 10.0.0.0/9
-autoDirectNodeRoutes: true
-tunnel: disabled
-cluster:
-  name: $CLUSTER
-  id: "${CLUSTER%%-*}"
-ingressController:
-  enabled: true
-  loadBalancerMode: dedicated
-hostServices:
-  enabled: true
-socketLB:
-  enabled: true
-externalIPs:
-  enabled: true
-nodePort:
-  enabled: true
-hostPort:
-  enabled: true
-image:
-  pullPolicy: IfNotPresent
-ipam:
-  mode: kubernetes
-hubble:
-  enabled: true
-  relay:
-    enabled: true
-  ui:
-    enabled: true
-EOF
+  --set kubeProxyReplacement=true \
+  --set k8sServiceHost=${CLUSTER}-control-plane \
+  --set k8sServicePort=6443 \
+  --set ipam.mode=kubernetes \
+  --set hubble.enabled=true \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true
 
 # wait for status up
-# cilium --context $KUBE_CONTEXT status --output json --wait
 cilium --context $KUBE_CONTEXT status --wait
+
+# set up a Cilium IP pool
+
+kubectl apply --context $KUBE_CONTEXT -f - <<EOF
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: "basic-pool"
+spec:
+  cidrs:
+  - cidr: "172.18.254.0/24"
+EOF
+
+# install cilium L2 announcements
+
+helm upgrade \
+  cilium cilium/cilium \
+  --kube-context $KUBE_CONTEXT \
+  --version 1.15.1 \
+  --namespace kube-system \
+  --reuse-values \
+  --set l2announcements.enabled=true \
+  --set devices=eth0
+
+# restart stuff
+
+STDARGS="--context $KUBE_CONTEXT --namespace kube-system"
+
+kubectl rollout restart $STDARGS deployment/cilium-operator
+kubectl rollout restart $STDARGS ds/cilium
+
+# create a policy to allow announcements
+
+kubectl apply --context $KUBE_CONTEXT -f - <<EOF
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: "basic-policy"
+spec:
+  interfaces:
+  - eth0
+  externalIPs: true
+  loadBalancerIPs: true
+EOF

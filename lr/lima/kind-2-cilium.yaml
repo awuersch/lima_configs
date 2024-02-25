@@ -1,0 +1,52 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: 2-cilium
+networking:
+  disableDefaultCNI: true
+  kubeProxyMode: none
+  podSubnet: 10.12.0.0/16
+  serviceSubnet: 10.2.0.0/16
+nodes:
+  - extraMounts:
+      - containerPath: /etc/containerd
+        hostPath: /workdir/containerd
+        readOnly: true
+    labels:
+      ingress-ready: true
+      topology.kubernetes.io/zone: zone-a
+    role: control-plane
+  - extraMounts:
+      - containerPath: /etc/containerd
+        hostPath: /workdir/containerd
+        readOnly: true
+    labels:
+      topology.kubernetes.io/zone: zone-b
+    role: control-plane
+  - extraMounts:
+      - containerPath: /etc/containerd
+        hostPath: /workdir/containerd
+        readOnly: true
+    labels:
+      topology.kubernetes.io/zone: zone-c
+    role: control-plane
+  - extraMounts:
+      - containerPath: /etc/containerd
+        hostPath: /workdir/containerd
+        readOnly: true
+    labels:
+      topology.kubernetes.io/zone: zone-a
+    role: worker
+  - extraMounts:
+      - containerPath: /etc/containerd
+        hostPath: /workdir/containerd
+        readOnly: true
+    labels:
+      topology.kubernetes.io/zone: zone-b
+    role: worker
+  - extraMounts:
+      - containerPath: /etc/containerd
+        hostPath: /workdir/containerd
+        readOnly: true
+    labels:
+      topology.kubernetes.io/zone: zone-c
+    role: worker

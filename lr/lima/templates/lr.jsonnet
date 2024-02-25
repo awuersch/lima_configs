@@ -4,13 +4,16 @@ local
   args = import 'args.libsonnet',
   files = import 'files.libsonnet',
   strings = files[args.vm_name],
+  locations = import 'locations.libsonnet',
   resources = import 'resources.libsonnet',
   params = import 'params.libsonnet',
   vm_indexed_name = args.vm_name + std.toString(args.vm_index),
   datadir = params.macstudio.misc.limaTop + "/" + vm_indexed_name,
   workdir = params.macstudio.misc.limaTop + "/" + args.workdir,
-  host_workdir = "/Users/tony/workspace/vms/" + workdir,
-  hosthome = host_workdir + "/home" + "/" + vm_indexed_name;
+  workspace = "/Users/tony/workspace/",
+  host_workdir = workspace + "vms/" + workdir,
+  hosthome = host_workdir + "/home" + "/" + vm_indexed_name,
+  host_volumes = "/Users/tony/workspace/volumes/";
 
 {
   # Example to run ubuntu using vmType: vz instead of qemu (Default)
@@ -23,30 +26,7 @@ local
     enabled: true,
     binfmt: true
   },
-  images: [
-    {
-      location: "https://cloud-images.ubuntu.com/releases/22.10/release-20230302/ubuntu-22.10-server-cloudimg-amd64.img",
-      digest: "sha256:f618c68e5510a1765f0184f0b048c713765ac1deaaaab55ce955ec86d84d4b8e",
-      arch: "x86_64"
-    },
-    {
-      location: "https://cloud-images.ubuntu.com/releases/22.10/release-20230302/ubuntu-22.10-server-cloudimg-arm64.img",
-      digest: "sha256:1ee82ef4f1d90f36790c18d9308c42224effc1674b48cf9f6b7418979cbd8950",
-      arch: "aarch64"
-    },
-    {
-      # Fallback to the latest release image.
-      # Hint: run `limactl prune` to invalidate the cache
-      location: "https://cloud-images.ubuntu.com/releases/22.10/release/ubuntu-22.10-server-cloudimg-amd64.img",
-      arch: "x86_64"
-    },
-    {
-      # Fallback to the latest release image.
-      # Hint: run `limactl prune` to invalidate the cache
-      location: "https://cloud-images.ubuntu.com/releases/22.10/release/ubuntu-22.10-server-cloudimg-arm64.img",
-      arch: "aarch64"
-    }
-  ],
+  images: locations.images[args.os][args.images_version],
   cpus: resources.macstudio.cpus,
   memory: resources.macstudio.memory,
   disk: resources.macstudio.disk,
@@ -66,8 +46,13 @@ local
       writable: true
     },
     {
-      location: "/opt/" + datadir,
+      location: workspace + "opt/" + datadir,
       mountPoint: "/opt/lima",
+      writable: true
+    },
+    {
+      location: host_volumes,
+      mountPoint: "/volumes",
       writable: true
     }
   ],

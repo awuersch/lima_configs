@@ -20,11 +20,13 @@ function prepare-mac-host { #
 
   # pull and save images
   for img in \
-      $REGISTRY_IMAGE_TAG
+      distribution/distribution:2.8.2 \
+      quay.io/metallb/controller:v0.13.10 \
+      quay.io/metallb/speaker:v0.13.10
   do
     # replace forward slashes and colon by hyphens
     s=${img//\//-}
-    TAR=${LIMA_HOST_DATA_DIR}/${s/:/-}.tar
+    TAR=${LIMA_DATA_DIR}/${s/:/-}.tar
     if [[ ! -f $TAR ]]; then
       docker pull $img
       docker save $img > $TAR
@@ -32,7 +34,7 @@ function prepare-mac-host { #
   done
 
   # the img-tar xform for the kindest/node image is different ...
-  TAR="${LIMA_HOST_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar"
+  TAR="${LIMA_DATA_DIR}/kind-${KIND_NODE_VERSION}-image.tar"
   if [[ ! -f $TAR ]]; then
     img="kindest/node:${KIND_NODE_VERSION}"
     docker pull $img
@@ -67,13 +69,11 @@ function setup_registry { # cache_dir cache_name domain port base_yml
 function registries { #
   # origin: bcollard ./lima/17-docker-registries.sh
 
-  # DOCKER IMAGE CACHES ("registry v2" or "distribution:3.0.0-alpha.1")
+  # DOCKER IMAGE CACHES ("registry v2" or "distribution:2.8.2")
   registry_img_loaded=$(image-loaded-check "$REGISTRY_IMAGE_TAG")
   if [ ${registry_img_loaded} -ne 1 ]; then
     echo "Loading the ${REGISTRY_IMAGE_TAG} image into the VM..."
-    # replace forward slashes and colon by hyphens
-    s=${REGISTRY_IMAGE_TAG//\//-}
-    docker load < ${LIMA_HOST_DATA_DIR}/${s/:/-}.tar
+    docker load < ${LIMA_DATA_DIR}/distribution-distribution-2.8.2.tar
   fi
 
   # docker.io mirror

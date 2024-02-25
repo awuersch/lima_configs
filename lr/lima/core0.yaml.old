@@ -1,0 +1,77 @@
+containerd:
+  system: false
+  user: false
+cpus: 8
+disk: 100GiB
+hostResolver:
+  hosts:
+    host.docker.internal: host.lima.internal
+images:
+  - arch: x86_64
+    digest: sha256:f618c68e5510a1765f0184f0b048c713765ac1deaaaab55ce955ec86d84d4b8e
+    location: https://cloud-images.ubuntu.com/releases/22.10/release-20230302/ubuntu-22.10-server-cloudimg-amd64.img
+  - arch: aarch64
+    digest: sha256:1ee82ef4f1d90f36790c18d9308c42224effc1674b48cf9f6b7418979cbd8950
+    location: https://cloud-images.ubuntu.com/releases/22.10/release-20230302/ubuntu-22.10-server-cloudimg-arm64.img
+  - arch: x86_64
+    location: https://cloud-images.ubuntu.com/releases/22.10/release/ubuntu-22.10-server-cloudimg-amd64.img
+  - arch: aarch64
+    location: https://cloud-images.ubuntu.com/releases/22.10/release/ubuntu-22.10-server-cloudimg-arm64.img
+memory: 26GiB
+mountType: virtiofs
+mounts:
+  - location: /Users/tony/workspace/vms/lima/core
+    mountPoint: /workdir
+    writable: false
+  - location: /tmp/lima/core0
+    mountPoint: /tmp/lima
+    writable: true
+  - location: /opt/lima/core0
+    mountPoint: /opt/lima
+    writable: true
+networks:
+  - vzNAT: true
+portForwards:
+  - guestSocket: /run/docker.sock
+    hostSocket: /Users/tony/workspace/vms/lima/core/home/core0/docker.sock
+probes:
+  - hint: |
+      See "/var/log/cloud-init-output.log". in the guest
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      if ! timeout 30s bash -c "until command -v docker >/dev/null 2>&1; do sleep 3; done"; then
+        echo >&2 "docker is not installed yet"
+        exit 1
+      fi
+      if ! timeout 30s bash -c "until pgrep dockerd; do sleep 3; done"; then
+        echo >&2 "dockerd is not running"
+        exit 1
+      fi
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      # https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files
+      sysctl fs.inotify.max_user_watches=524288
+      sysctl fs.inotify.max_user_instances=512
+      command -v docker >/dev/null 2>&1 && exit 0
+      if [ ! -e /etc/systemd/system/docker.socket.d/override.conf ]; then
+        mkdir -p /etc/systemd/system/docker.socket.d
+        # Alternatively we could just add the user to the "docker" group, but that requires restarting the user session
+        cat <<-EOF >/etc/systemd/system/docker.socket.d/override.conf
+        [Socket]
+        SocketUser=${LIMA_CIDATA_USER}
+      EOF
+      fi
+      export DEBIAN_FRONTEND=noninteractive
+      curl -fsSL https://get.docker.com | sh
+      apt-get install -y net-tools traceroute arping jq
+rosetta:
+  binfmt: true
+  enabled: true
+ssh:
+  loadDotSSHPubKeys: false
+  localPort: 0
+vmType: vz

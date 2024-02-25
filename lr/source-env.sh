@@ -21,7 +21,7 @@ export HOST_INSTANCE_HOME=$HOST_HOME/$LIMA_INSTANCE
 export KUBE_HOST_DIR=$HOST_INSTANCE_HOME/.kube
 export KIND_HOST_HOME_DIR=$KUBE_HOST_DIR/kind
 # Where to store the VM data like OCI image archives, etc.
-export LIMA_DATA_DIR=/opt/lima
+export LIMA_DATA_DIR=$WORKSPACE/opt/lima
 export LIMA_HOST_DATA_DIR=$LIMA_DATA_DIR/$LIMA_INSTANCE
 # tmp directory
 export LIMA_HOST_TMP_DIR=/tmp/lima/$LIMA_INSTANCE
@@ -53,21 +53,21 @@ export LIMACTL_BIN=$(which limactl)
 export LIMA_BIN=$(which lima)
 
 # KinD
-#export KIND_NODE_VERSION=v1.24.0
-export KIND_NODE_VERSION=v1.26.0
+export KIND_NODE_VERSION=v1.29.2
 
 # Registry mirrors
-export REGISTRY_IMAGE_TAG="distribution/distribution:2.8.1"
+# export REGISTRY_IMAGE_TAG="distribution/distribution:3.0.0-alpha.1"
+export REGISTRY_IMAGE_TAG="distribution/distribution:2.8.3"
 export DOCKERIO_CACHE_NAME='registry-dockerio'
 export QUAYIO_CACHE_NAME='registry-quayio'
 export GCRIO_CACHE_NAME='registry-gcrio'
 export K8SIO_CACHE_NAME='registry-k8sio'
 export USDOCKERPKGDEV_CACHE_NAME='registry-us-docker-pkg-dev'
-export DOCKERIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$DOCKERIO_CACHE_NAME
-export QUAYIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$QUAYIO_CACHE_NAME
-export GCRIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$GCRIO_CACHE_NAME
-export K8SIO_CACHE_DIR=${LIMA_DATA_DIR}/docker-$K8SIO_CACHE_NAME
-export USDOCKERPKGDEV_CACHE_DIR=${LIMA_DATA_DIR}/docker-registry-us-docker.pkg.dev
+export DOCKERIO_CACHE_DIR=${LIMA_VM_DATA_DIR}/docker-$DOCKERIO_CACHE_NAME
+export QUAYIO_CACHE_DIR=${LIMA_VM_DATA_DIR}/docker-$QUAYIO_CACHE_NAME
+export GCRIO_CACHE_DIR=${LIMA_VM_DATA_DIR}/docker-$GCRIO_CACHE_NAME
+export K8SIO_CACHE_DIR=${LIMA_VM_DATA_DIR}/docker-$K8SIO_CACHE_NAME
+export USDOCKERPKGDEV_CACHE_DIR=${LIMA_VM_DATA_DIR}/docker-registry-us-docker.pkg.dev
 export DOCKERIO_CACHE_PORT='5030'
 export QUAYIO_CACHE_PORT='5010'
 export GCRIO_CACHE_PORT='5020'
