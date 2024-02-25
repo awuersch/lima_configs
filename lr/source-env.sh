@@ -56,8 +56,8 @@ export LIMA_BIN=$(which lima)
 export KIND_NODE_VERSION=v1.29.2
 
 # Registry mirrors
-# export REGISTRY_IMAGE_TAG="distribution/distribution:3.0.0-alpha.1"
-export REGISTRY_IMAGE_TAG="distribution/distribution:2.8.3"
+# export REGISTRY_IMAGE_TAG="distribution/distribution:2.8.3"
+export REGISTRY_IMAGE_TAG="distribution/distribution:3.0.0-alpha.1"
 export DOCKERIO_CACHE_NAME='registry-dockerio'
 export QUAYIO_CACHE_NAME='registry-quayio'
 export GCRIO_CACHE_NAME='registry-gcrio'
