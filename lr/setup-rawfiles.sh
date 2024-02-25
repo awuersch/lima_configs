@@ -4,7 +4,7 @@ set -euf -o pipefail
 # set up rawfiles for openebs
 
 # name of cluster
-CLUSTER=kind
+CLUSTER=1-cilium
 
 # how many gigabytes for each external storage instance
 MAX_SIZE_GIGABYTES=30
@@ -36,8 +36,8 @@ EOF
 for suffix in control-plane worker worker2 worker3
 do
   set -x
-  node=kind-${suffix}
-  f=${VOLUME_DIR}/${node}/${IMG}
+  node=$CLUSTER-${suffix}
+  f=${VOLUME_DIR}/kind-${suffix}/${IMG}
   if [[ ! -f ${f} ]]; then
     # create a local file whose size will be the max size of external storage for a node
     dd if=/dev/zero of=${f} bs=1G count=0 seek=${MAX_SIZE_GIGABYTES}
