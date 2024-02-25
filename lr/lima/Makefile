@@ -1,6 +1,6 @@
 # Makefile
 
-all: basic.yaml lr0.yaml lr1.yaml lr0-kind-1-cilium.yaml
+all: basic.yaml lr0.yaml lr1.yaml kind-1-cilium.yaml kind-2-cilium.yaml
 
 clean:
 	rm -f *.yaml templates/args.libsonnet
@@ -13,11 +13,11 @@ lr0.yaml:
 	jsonnet templates/lr.jsonnet | yq -P > $@
 
 lr1.yaml:
-	echo '{ vm_name: "lr", vm_index: 1, workdir: "lr" }' > templates/args.libsonnet
+	echo '{ os: "ubuntu", images_version: "23.10", vm_name: "lr", vm_index: 1, workdir: "lr" }' > templates/args.libsonnet
 	jsonnet templates/lr.jsonnet | yq -P > $@
 
 build0.yaml:
-	echo '{ vm_name: "build", vm_index: 0, workdir: "build" }' > templates/args.libsonnet
+	echo '{ os: "ubuntu", images_version: "23.10", vm_name: "build", vm_index: 0, workdir: "build" }' > templates/args.libsonnet
 	jsonnet templates/lr.jsonnet | yq -P > $@
 
 kind-1-cilium.yaml:
