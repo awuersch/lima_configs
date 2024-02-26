@@ -84,4 +84,14 @@ volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 EOF
 
+# make the new StorageClass the default storage class
+
+kubectl patch storageclass standard -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+kubectl patch storageclass local-device -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+# delete the old storage class
+
+kubectl delete storageclass standard
+
 # see https://openebs.io/docs/user-guides/localpv-device for examples of use.
