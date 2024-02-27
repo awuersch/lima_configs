@@ -11,7 +11,7 @@ local
     "extraMounts": [
       {
         "hostPath": "/volumes/kind-" + role + n + "/ext4fs.img",
-        "containerPath": "/var/csi/rawfile"
+        "containerPath": "/var/csi/rawfile/ext4fs.img"
       }
     ]
   },

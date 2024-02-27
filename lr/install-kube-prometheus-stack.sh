@@ -24,8 +24,8 @@ helm repo --kube-context $KUBE_CONTEXT add \
   prometheus-community \
   https://prometheus-community.github.io/helm-charts
 helm repo update --kube-context $KUBE_CONTEXT prometheus-community
-helm upgrade --install
+helm upgrade --install \
   prom-kube-stack prometheus-community/kube-prometheus-stack \
   --kube-context $KUBE_CONTEXT \
   --version $KPS_VERSION \
-  ---namespace monitoring --create-namespace monitoring
+  --namespace monitoring --create-namespace
