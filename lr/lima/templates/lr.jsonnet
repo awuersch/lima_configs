@@ -10,10 +10,10 @@ local
   vm_indexed_name = args.vm_name + std.toString(args.vm_index),
   datadir = params.macstudio.misc.limaTop + "/" + vm_indexed_name,
   workdir = params.macstudio.misc.limaTop + "/" + args.workdir,
-  workspace = "/Users/tony/workspace/",
-  host_workdir = workspace + "vms/" + workdir,
+  workspace = "/Users/" + args.user + "/workspace",
+  host_workdir = workspace + "/vms/" + workdir,
   hosthome = host_workdir + "/home" + "/" + vm_indexed_name,
-  host_volumes = "/Users/tony/workspace/volumes/";
+  host_volumes = workspace + "/volumes/";
 
 {
   # Example to run ubuntu using vmType: vz instead of qemu (Default)

@@ -54,7 +54,7 @@ function setup_registry { # cache_dir cache_name domain port base_yml
   fi
   if [ -z "${cache_running}" -o "${cache_running}" = "false" ]; then
     echo "{ domain: \"${domain}\", port: $port }" > lima/templates/args.libsonnet
-    jsonnet ./lima/templates/cache-config.jsonnet | yq -P > ${KIND_HOST_HOME_DIR}/$base_yml
+    jsonnet ./lima/templates/cache-config.jsonnet | yq -y > ${KIND_HOST_HOME_DIR}/$base_yml
     echo "Starting $domain mirror"
     docker run \
       --network kind \

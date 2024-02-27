@@ -46,18 +46,6 @@ do
   docker exec ${node} bash -c "rm /script.sh"
 done
 
-# set up kube-prometheus-stack
-
-helm repo --kube-context $KUBE_CONTEXT add \
-  prometheus-community \
-  https://prometheus-community.github.io/helm-charts
-helm repo update --kube-context $KUBE_CONTEXT
-kubectl create --context $KUBE_CONTEXT namespace prometheus || true
-helm install \
-  --kube-context $KUBE_CONTEXT \
-  --namespace prometheus \
-  --generate-name prometheus-community/kube-prometheus-stack
-
 # set up openebs
 
 OPENEBS_GITHUB_DIR=~/workspace/src/git/github.com/openebs
