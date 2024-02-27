@@ -114,3 +114,13 @@ spec:
   externalIPs: true
   loadBalancerIPs: true
 EOF
+
+# convert hubble-ui service to LoadBalancer
+kubectl expose svc/hubble-ui \
+  --name hubble-ui-lb \
+  --context $KUBE_CONTEXT \
+  --namespace kube-system \
+  --type LoadBalancer
+
+# create tunnel to localhost port 8081
+bash ./tunnel.sh 8081 $LIMA_INSTANCE $KUBE_CONTEXT hubble-ui-lb kube-system
