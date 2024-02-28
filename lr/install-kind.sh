@@ -29,9 +29,9 @@ done
 KUBE_CONTEXT="kind-$CLUSTER"
 
 # taint nodes
-# kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker node.cilium.io/agent-not-ready=true:NoSchedule
-# kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker2 node.cilium.io/agent-not-ready=true:NoSchedule
-# kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker3 node.cilium.io/agent-not-ready=true:NoSchedule
+kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker node.cilium.io/agent-not-ready=true:NoSchedule
+kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker2 node.cilium.io/agent-not-ready=true:NoSchedule
+kubectl --context $KUBE_CONTEXT taint nodes ${CLUSTER}-worker3 node.cilium.io/agent-not-ready=true:NoSchedule
 
 # image loads
 for img in \
@@ -123,4 +123,4 @@ kubectl expose svc/hubble-ui \
   --type LoadBalancer
 
 # create tunnel to localhost port 8081
-bash ./tunnel.sh 8081 $LIMA_INSTANCE $KUBE_CONTEXT hubble-ui-lb kube-system
+bash ./tunnel.sh 8081 $LIMA_INSTANCE $KUBE_CONTEXT hubble-ui-lb kube-system 8081
