@@ -43,6 +43,8 @@ do
     --type LoadBalancer
 done
 
+# TODO: fix grafana
+
 # create tunnels to localhost ports
 bash ./tunnel.sh 8090 $LIMA_INSTANCE $CXT $KPS_PREFIX-grafana-lb monitoring 80
 bash ./tunnel.sh 9093 $LIMA_INSTANCE $CXT $KPS_PREFIX-kube-prome-alertmanager-lb monitoring 9093
