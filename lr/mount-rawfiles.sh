@@ -65,7 +65,7 @@ kubectl apply --context $KUBE_CONTEXT -f - <<EOF
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: local-device
+  name: openebss-rawfile-ext4
 provisioner: rawfile.csi.openebs.io
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer

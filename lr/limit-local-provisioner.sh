@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 set -euf -o pipefail
 
+# mount rawfiles as loopdev local provisioners, to limit risk to host
+
 function errout { 
   >&2 echo "usage: $0 lima-instance cluster-name"
   exit 1
@@ -15,8 +17,6 @@ CLUSTER=$1; shift
 
 KUBE_CONTEXT=kind-$CLUSTER
 
-# set up rawfiles for openebs
-
 # basename of image file
 IMG=ext4fs.img
 
@@ -27,6 +27,7 @@ RAWFILE_DIR=/var/csi/rawfile
 RAWFILE_IMG=${RAWFILE_DIR}/$IMG
 
 # define a script to run on a node, to set up external storage
+
 cat > /tmp/script <<EOF
 #! /bin/bash
 set -euf -o pipefail
@@ -35,8 +36,6 @@ mkdir -p $TARGET_DIR
 mount \${LOOPDEV} ${TARGET_DIR}
 df ${TARGET_DIR}
 EOF
-
-# mount rawfiles
 
 for node in $(kind get nodes -n $CLUSTER)
 do
@@ -47,3 +46,18 @@ do
   # remove script
   docker exec ${node} bash -c "rm /script.sh"
 done
+
+# update local-path storage class from Delete to Retain
+
+kubectl delete storageclass standard
+kubectl apply -f - <<EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  name: standard
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+EOF
