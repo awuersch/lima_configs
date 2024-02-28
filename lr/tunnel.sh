@@ -7,17 +7,18 @@ set -euf -o pipefail
 # set up an SSH tunnel to a process
 
 function errout {
-  >&2 echo "usage: $0 port vm cluster svc namespace"
+  >&2 echo "usage: $0 port vm cluster svc namespace svcport"
   exit 1
 }
 
-(($#==5)) || errout
+(($#==6)) || errout
 
 p=$1; shift
 vm=$1; shift
 cluster=$1; shift
 svc=$1; shift
 ns=$1; shift
+sp=$1; shift
 
 # set variables
 export LIMA_HOME=${LIMA_HOME:-$HOME/.lima}
@@ -35,10 +36,7 @@ json="$(kubectl --context $cluster get svc --output json --namespace $ns $svc)"
 # get service ip
 svcip=$(echo "$json" | jq -r '.status.loadBalancer.ingress[0].ip')
 
-# get service port
-svcp=$(echo "$json" | jq -r '.spec.ports[0].port')
-
 # put ssh to port in background
-ssh -fN -i $pk -L $p:$svcip:$svcp -o Hostname=127.0.0.1 -o Port=$sshlp lima-$vm
+ssh -fN -i $pk -L $p:$svcip:$sp -o Hostname=127.0.0.1 -o Port=$sshlp lima-$vm
 
-echo "curl to port $svcp of localhost:$p"
+echo "curl to port $sp of localhost:$p"
