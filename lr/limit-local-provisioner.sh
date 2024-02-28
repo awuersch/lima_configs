@@ -31,6 +31,7 @@ cat > /tmp/script <<EOF
 #! /bin/bash
 set -euf -o pipefail
 LOOPDEV=\$(losetup -fP --show ${RAWFILE_IMG})
+mkdir -p $TARGET_DIR
 mount \${LOOPDEV} ${TARGET_DIR}
 df ${TARGET_DIR}
 EOF
