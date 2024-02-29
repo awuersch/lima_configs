@@ -46,7 +46,7 @@ local
       writable: true
     },
     {
-      location: workspace + "opt/" + datadir,
+      location: workspace + "/opt/" + datadir,
       mountPoint: "/opt/lima",
       writable: true
     },
