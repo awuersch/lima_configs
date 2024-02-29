@@ -27,9 +27,9 @@ local
     binfmt: true
   },
   images: locations.images[args.os][args.images_version],
-  cpus: resources.macstudio.cpus,
-  memory: resources.macstudio.memory,
-  disk: resources.macstudio.disk,
+  cpus: resources.macbookpro.cpus,
+  memory: resources.macbookpro.memory,
+  disk: resources.macbookpro.disk,
   containerd: {
     system: false,
     user: false
