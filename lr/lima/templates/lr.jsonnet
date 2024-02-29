@@ -8,12 +8,13 @@ local
   resources = import 'resources.libsonnet',
   params = import 'params.libsonnet',
   vm_indexed_name = args.vm_name + std.toString(args.vm_index),
-  datadir = params.macstudio.misc.limaTop + "/" + vm_indexed_name,
-  workdir = params.macstudio.misc.limaTop + "/" + args.workdir,
+  datadir = params.macbookpro.misc.limaTop + "/" + vm_indexed_name,
+  workdir = params.macbookpro.misc.limaTop + "/" + args.workdir,
   workspace = "/Users/" + args.user + "/workspace",
   host_workdir = workspace + "/vms/" + workdir,
   hosthome = host_workdir + "/home" + "/" + vm_indexed_name,
-  host_volumes = workspace + "/volumes/";
+  host_volumes = workspace + "/volumes/",
+  model = "macbookpro";
 
 {
   # Example to run ubuntu using vmType: vz instead of qemu (Default)
