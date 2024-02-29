@@ -6,5 +6,10 @@ local args = import 'args.libsonnet';
     misc: {
       limaTop: "lima"
     }
+  },
+  macbookpro: {
+    misc: {
+      limaTop: "lima"
+    }
   }
 }
