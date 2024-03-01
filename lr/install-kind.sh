@@ -116,6 +116,31 @@ spec:
 EOF
 
 # tunnel to hubble-ui
+echo '{ name: http }' > args.libsonnet
+kubectl get svc \
+  --context $KUBE_CONTEXT \
+  --namespace kube-system \
+  --output json > svcs.libsonnet
+
+jsonnet -S target-ports.jsonnet > target-ports.tsv
+
+# https://stackoverflow.com/questions/9736202/read-tab-separated-file-line-into-array/9736732#9736732
+# while IFS=$'\t' read -r -a myArray
+# do
+#  echo "${myArray[0]}"
+#  echo "${myArray[1]}"
+#  echo "${myArray[2]}"
+# done < myfile
+
+# create lb svcs for apps
+
+while IFS=$'\t' read -r -a tps
+do
+  svc="${tps[0]}"
+  targetPort="${tps[1]}"
+  app=${svc##*-}
+  echo $svc $targetPort $app
+done < target-ports.tsv
 
 kubectl expose svc/hubble-ui \
   --name hubble-ui-lb \
@@ -125,4 +150,3 @@ kubectl expose svc/hubble-ui \
   --type LoadBalancer
 
 bash ./tunnel.sh 8081 $LIMA_INSTANCE $KUBE_CONTEXT hubble-ui-lb kube-system
-
