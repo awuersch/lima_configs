@@ -116,10 +116,12 @@ spec:
 EOF
 
 # tunnel to hubble-ui
-echo '{ name: http }' > args.libsonnet
+HUBBLE_NS=kube-system
+
+echo '{ name: "http" }' > args.libsonnet
 kubectl get svc \
   --context $KUBE_CONTEXT \
-  --namespace kube-system \
+  --namespace $HUBBLE_NS \
   --output json > svcs.libsonnet
 
 jsonnet -S target-ports.jsonnet > target-ports.tsv
@@ -138,15 +140,12 @@ while IFS=$'\t' read -r -a tps
 do
   svc="${tps[0]}"
   targetPort="${tps[1]}"
-  app=${svc##*-}
-  echo $svc $targetPort $app
+  app=hubble-ui
+  kubectl expose svc/$svc \
+    --name $app-lb \
+    --context $KUBE_CONTEXT \
+    --namespace $HUBBLE_NS \
+    --target-port $targetPort \
+    --type LoadBalancer
+  bash ./tunnel.sh $targetPort $LIMA_INSTANCE $KUBE_CONTEXT $app-lb $KPS_NS
 done < target-ports.tsv
-
-kubectl expose svc/hubble-ui \
-  --name hubble-ui-lb \
-  --context $KUBE_CONTEXT \
-  --namespace kube-system \
-  --target-port 8081 \
-  --type LoadBalancer
-
-bash ./tunnel.sh 8081 $LIMA_INSTANCE $KUBE_CONTEXT hubble-ui-lb kube-system

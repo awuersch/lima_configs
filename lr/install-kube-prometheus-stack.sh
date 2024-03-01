@@ -34,8 +34,11 @@ helm upgrade --install \
 
 # get target ports of prometheus apps
 echo '{ name: "http-web" }' > args.libsonnet
-kubectl get svc -n $KPS_NS > svcs.libsonnet
-jsonnet target-ports.jsonnet > target-ports.tsv
+kubectl get svc \
+  --context $KUBE_CONTEXT \
+  --namespace $KPS_NS \
+  --output json > svcs.libsonnet
+jsonnet -S target-ports.jsonnet > target-ports.tsv
 
 # https://stackoverflow.com/questions/9736202/read-tab-separated-file-line-into-array/9736732#9736732
 # while IFS=$'\t' read -r -a myArray
