@@ -1,6 +1,10 @@
 local args = import 'args.libsonnet',
       svcs = import 'svcs.libsonnet',
-      targetPorts(arr, name) = [p.targetPort for p in arr if p.name == name],
+      targetPorts(arr, name) = [
+        p.targetPort
+        for p in arr
+        if "name" in p && p.name == name
+      ],
       namedPorts = [
         { name: item.metadata.name, targetPort: item.spec.ports[0].targetPort }
         for item in svcs.items
