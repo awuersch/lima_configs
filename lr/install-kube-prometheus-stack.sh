@@ -20,6 +20,7 @@ CXT=kind-$CLUSTER
 # kube-prometheus-stack helm chart version
 KPS_VERSION=56.13.1
 KPS_NAME=prom-kube-stack
+KPS_NS=monitoring
 
 helm repo --kube-context $CXT add \
   prometheus-community \
@@ -29,23 +30,33 @@ helm upgrade --install \
   $KPS_NAME prometheus-community/kube-prometheus-stack \
   --kube-context $CXT \
   --version $KPS_VERSION \
-  --namespace monitoring --create-namespace
+  --namespace $KPS_NS --create-namespace
 
-KPS_PREFIX=$KPS_NAME
-for svc in grafana kube-prome-prometheus kube-prome-alertmanager
+# get target ports of prometheus apps
+echo '{ name: "http-web" }' > args.libsonnet
+kubectl get svc -n $KPS_NS > svcs.libsonnet
+jsonnet target-ports.jsonnet > target-ports.tsv
+
+# https://stackoverflow.com/questions/9736202/read-tab-separated-file-line-into-array/9736732#9736732
+# while IFS=$'\t' read -r -a myArray
+# do
+#  echo "${myArray[0]}"
+#  echo "${myArray[1]}"
+#  echo "${myArray[2]}"
+# done < myfile
+
+# create lb svcs for apps
+
+while IFS=$'\t' read -r -a tps
 do
-  kpssrc=$KPS_PREFIX-$svc
-
-  kubectl expose svc/$kpssrc \
-    --name $kpssrc-lb \
-    --context $CXT \
-    --namespace monitoring \
+  svc="${tps[0]}"
+  targetPort="${tps[1]}"
+  app=${svc##*-}
+  kubectl expose svc/$svc \
+    --name $app-lb \
+    --context $KUBE_CONTEXT \
+    --namespace $KPS_NS \
+    --target-port $targetPort \
     --type LoadBalancer
-done
-
-# TODO: fix grafana
-
-# create tunnels to localhost ports
-bash ./tunnel.sh 8090 $LIMA_INSTANCE $CXT $KPS_PREFIX-grafana-lb monitoring 80
-bash ./tunnel.sh 9093 $LIMA_INSTANCE $CXT $KPS_PREFIX-kube-prome-alertmanager-lb monitoring 9093
-bash ./tunnel.sh 9090 $LIMA_INSTANCE $CXT $KPS_PREFIX-kube-prome-prometheus-lb monitoring 9090
+  bash ./tunnel.sh $targetPort $LIMA_INSTANCE $KUBE_CONTEXT $app-lb $KPS_NS
+done < target-ports.tsv
