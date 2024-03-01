@@ -147,5 +147,5 @@ do
     --namespace $HUBBLE_NS \
     --target-port $targetPort \
     --type LoadBalancer
-  bash ./tunnel.sh $targetPort $LIMA_INSTANCE $KUBE_CONTEXT $app-lb $KPS_NS
+  bash ./tunnel.sh $targetPort $LIMA_INSTANCE $KUBE_CONTEXT $app-lb $HUBBLE_NS
 done < target-ports.tsv
