@@ -13,7 +13,7 @@ CLUSTER=$1; shift
 
 . ./source-env.sh
 
-CXT=kind-$CLUSTER
+KUBE_CONTEXT=kind-$CLUSTER
 
 # set up kube-prometheus-stack
 
@@ -22,13 +22,13 @@ KPS_VERSION=56.13.1
 KPS_NAME=prom-kube-stack
 KPS_NS=monitoring
 
-helm repo --kube-context $CXT add \
+helm repo --kube-context $KUBE_CONTEXT add \
   prometheus-community \
   https://prometheus-community.github.io/helm-charts
-helm repo update --kube-context $CXT prometheus-community
+helm repo update --kube-context $KUBE_CONTEXT prometheus-community
 helm upgrade --install \
   $KPS_NAME prometheus-community/kube-prometheus-stack \
-  --kube-context $CXT \
+  --kube-context $KUBE_CONTEXT \
   --version $KPS_VERSION \
   --namespace $KPS_NS --create-namespace
 
