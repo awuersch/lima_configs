@@ -7,6 +7,9 @@ local svcs = import 'svcs.libsonnet',
             targetPorts(item.spec.ports, "http-web") != []
           &&
             std.endsWith(item.metadata.name, "operated") == false
-      ]
+      ];
 
-std.lines([join("\t", [np.name, np.targetPort])]) + "\n"
+std.join(
+  "\n",
+  [std.join("\t", [o.name, o.targetPort + ""]) for o in namedPorts]
+)
