@@ -39,6 +39,13 @@ svcip=$(echo "$json" | jq -r '.status.loadBalancer.ingress[0].ip')
 svcp=$(echo "$json" | jq -r '.spec.ports[0].port')
 
 # put ssh to port in background
-ssh -fN -i $pk -L $p:$svcip:$svcp -o Hostname=127.0.0.1 -o Port=$sshlp lima-$vm
+ssh -fN \
+  -i $pk \
+  -L $p:$svcip:$svcp \
+  -o Hostname=127.0.0.1 \
+  -o Port=$sshlp \
+  -o Port=$sshlp \
+  -o StrictHostKeyChecking=no \
+  lima-$vm
 
 echo "curl to port $svcp of localhost:$p"

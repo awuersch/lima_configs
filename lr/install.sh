@@ -115,6 +115,14 @@ function registries { #
   port=${USDOCKERPKGDEV_CACHE_PORT}
   base_yml=us-docker.pkg.dev-cache-config.yml
   setup_registry $cache_dir $cache_name $domain $port $base_yml
+
+  # ghcr.io mirror
+  cache_dir=${GHCRIO_CACHE_DIR}
+  cache_name=${GHCRIO_CACHE_NAME}
+  domain=ghcr.io
+  port=${GHCRIO_CACHE_PORT}
+  base_yml=ghcrio-cache-config.yml
+  setup_registry $cache_dir $cache_name $domain $port $base_yml
 }
 
 # registry storage setup

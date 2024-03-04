@@ -1,0 +1,5 @@
+server = "https://ghcr.io"
+
+[host."http://registry-ghcrio:5060"]
+  capabilities = ["pull", "resolve"]
+  skip_verify = true
