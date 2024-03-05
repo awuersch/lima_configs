@@ -20,7 +20,7 @@ KUBE_CONTEXT=kind-$CLUSTER
 # argo-cd helm chart version
 ARGOCD_VERSION=6.6.0
 ARGOCD_NAME=argo
-ARGOCD_NS=argo
+ARGOCD_NS=argocd
 
 helm repo --kube-context $KUBE_CONTEXT add \
   argo \
