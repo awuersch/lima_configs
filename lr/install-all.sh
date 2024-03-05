@@ -17,4 +17,6 @@ echo install-kube-prometheus-stack
 bash -x ./install-kube-prometheus-stack.sh $VM $CL 2>&1 | tee install-kube-prom-stack-${VM}-${CL}.out
 echo limit-local-provisioner
 bash -x ./limit-local-provisioner.sh $VM $CL 2>&1 | tee install-limit-provisioner-${VM}-${CL}.out
+echo install-argo-cd
+bash -x ./install-argo-cd.sh $VM $CL 2>&1 | tee install-argo-cd-${VM}-${CL}.out
 echo Done.
