@@ -30,21 +30,22 @@ helm install \
   $ARGOCD_NAME argo/argo-cd \
   --kube-context $KUBE_CONTEXT \
   --version $ARGOCD_VERSION \
-  --namespace $ARGOCD_NA --create-namespace \
+  --namespace $ARGOCD_NS --create-namespace \
   --dry-run \
   --set configs.params.server.insecure=true > argocd-dry-run.yaml
 helm upgrade --install \
   $ARGOCD_NAME argo/argo-cd \
   --kube-context $KUBE_CONTEXT \
   --version $ARGOCD_VERSION \
-  --namespace $ARGOCD_NA --create-namespace \
+  --namespace $ARGOCD_NS --create-namespace \
   --set configs.params.server.insecure=true
 
 # expose and tunnel argocd-dex-server
 
 DEX_SERVER_TARGET_PORT=5556
-DEX_SERVER_LB_NAME=argo-argocd-dex-server-lb
-kubectl expose svc/argo-argocd-dex-server \
+DEX_SERVER_SVC_NAME=argo-argocd-dex-server
+DEX_SERVER_LB_NAME=${DEX_SERVER_SVC_NAME}-lb
+kubectl expose svc/$DEX_SERVER_SVC_NAME \
   --name $DEX_SERVER_LB_NAME \
   --context $KUBE_CONTEXT \
   --namespace $ARGOCD_NS \
@@ -57,8 +58,9 @@ bash ./tunnel.sh $DEX_SERVER_TUNNEL_PORT $LIMA_INSTANCE $KUBE_CONTEXT $DEX_SERVE
 # expose and gunnel argocd-server
 
 SERVER_TARGET_PORT=8080
-SERVER_LB_NAME=argo-argocd-server-lb
-kubectl expose svc/argo-argocd-server \
+SERVER_SVC_NAME=argo-argocd-server
+SERVER_LB_NAME=${SERVER_SVC_NAME}-lb
+kubectl expose svc/$SERVER_SVC_NAME \
   --name $SERVER_LB_NAME \
   --context $KUBE_CONTEXT \
   --namespace $ARGOCD_NS \
