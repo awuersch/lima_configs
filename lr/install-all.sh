@@ -19,4 +19,6 @@ echo limit-local-provisioner
 bash -x ./limit-local-provisioner.sh $VM $CL 2>&1 | tee install-limit-provisioner-${VM}-${CL}.out
 echo install-argo-cd
 bash -x ./install-argo-cd.sh $VM $CL 2>&1 | tee install-argo-cd-${VM}-${CL}.out
+echo install-kyverno
+bash -x ./install-kyverno.sh $VM $CL 2>&1 | tee install-kyverno-${VM}-${CL}.out
 echo Done.
