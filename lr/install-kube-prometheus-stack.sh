@@ -48,18 +48,19 @@ jsonnet -S target-ports.jsonnet > target-ports.tsv
 #  echo "${myArray[2]}"
 # done < myfile
 
-# create lb svcs for apps
+# patch lb svcs and create tunnels
 
 while IFS=$'\t' read -r -a tps
 do
   svc="${tps[0]}"
   targetPort="${tps[1]}"
-  app=${svc##*-}
-  kubectl expose svc/$svc \
-    --name $app-lb \
-    --context $KUBE_CONTEXT \
-    --namespace $KPS_NS \
-    --target-port $targetPort \
-    --type LoadBalancer
-  bash ./tunnel.sh $targetPort $LIMA_INSTANCE $KUBE_CONTEXT $app-lb $KPS_NS
+  # app=${svc##*-}
+  # kubectl expose svc/$svc \
+  #   --name $app-lb \
+  #   --context $KUBE_CONTEXT \
+  #   --namespace $KPS_NS \
+  #   --target-port $targetPort \
+  #   --type LoadBalancer
+  kubectl patch svc $svc -n $ARGOCD_NS -p '{"spec": {"type": "LoadBalancer"}}'
+  bash ./tunnel.sh $targetPort $LIMA_INSTANCE $KUBE_CONTEXT $svc $KPS_NS
 done < target-ports.tsv

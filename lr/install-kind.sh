@@ -61,6 +61,7 @@ helm upgrade --install \
   --version 1.15.1 \
   --namespace kube-system \
   --set kubeProxyReplacement=true \
+  --set socketLB.hostNamespaceOnly=true \
   --set k8sServiceHost=${CLUSTER}-control-plane \
   --set k8sServicePort=6443 \
   --set ipam.mode=kubernetes \
@@ -115,14 +116,17 @@ spec:
   loadBalancerIPs: true
 EOF
 
-# tunnel to hubble-ui
+SVC=hubble-ui
+NS=kube-system
+PORT=8081
+# patch and tunnel to hubble-ui
+# kubectl expose svc/$SVC \
+#   --name ${SVC}-lb \
+#   --context $KUBE_CONTEXT \
+#   --namespace $NS \
+#   --target-port $PORT \
+#   --type LoadBalancer
+kubectl patch svc $SVC -n $NS -p '{"spec": {"type": "LoadBalancer"}}'
 
-kubectl expose svc/hubble-ui \
-  --name hubble-ui-lb \
-  --context $KUBE_CONTEXT \
-  --namespace kube-system \
-  --target-port 8081 \
-  --type LoadBalancer
-
-bash ./tunnel.sh 8081 $LIMA_INSTANCE $KUBE_CONTEXT hubble-ui-lb kube-system
-
+# bash ./tunnel.sh $PORT $LIMA_INSTANCE $KUBE_CONTEXT ${SVC}-lb $NS
+bash ./tunnel.sh $PORT $LIMA_INSTANCE $KUBE_CONTEXT $SVC $NS
