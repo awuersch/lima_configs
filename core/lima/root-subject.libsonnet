@@ -2,12 +2,12 @@
   "common_name": "Root CA",
   "country": "US",
   "organization": "Tony Wuersch",
-  "locality": "Providence",
-  "province": "Rhode Island",
+  "locality": "Arlington",
+  "province": "Massachusetts",
   "names": [
     "US",
-    "Rhode Island",
-    "Providence",
+    "Massachusetts",
+    "Arlington",
     "Tony Wuersch",
     "Root CA"
   ]
