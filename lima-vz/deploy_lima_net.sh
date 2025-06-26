@@ -8,12 +8,12 @@ cd lima_net
 # Create gateway instance config
 cat > default-gw.yaml <<EOF
 images:
-  - location: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
+  - location: "https://cloud-images.ubuntu.com/releases/25.04/release/ubuntu-25.04-server-cloudimg-amd64.img"
     arch: "x86_64"
 
 vmType: "vz"
-memory: "1GiB"
-cpus: 1
+# memory: "1GiB"
+# cpus: 1
 
 networks:
   - vzMode: "vmnet-shared"
@@ -34,12 +34,12 @@ EOF
 # Create routed client config
 cat > routed-client.yaml <<EOF
 images:
-  - location: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
+  - location: "https://cloud-images.ubuntu.com/releases/25.04/release/ubuntu-25.04-server-cloudimg-amd64.img"
     arch: "x86_64"
 
 vmType: "vz"
-memory: "1GiB"
-cpus: 1
+# memory: "1GiB"
+# cpus: 1
 
 networks:
   - vzMode: "vmnet-shared"
@@ -55,8 +55,8 @@ mounts: []
 EOF
 
 # Start instances
-limactl start ./default-gw.yaml --name=default-gw
-limactl start ./routed-client.yaml --name=routed-client
+# limactl start ./default-gw.yaml --name=default-gw
+# limactl start ./routed-client.yaml --name=routed-client
 
-echo "✅ Lima instances launched and network routing configured."
+# echo "✅ Lima instances launched and network routing configured."
 
