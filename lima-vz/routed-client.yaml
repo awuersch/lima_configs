@@ -1,0 +1,19 @@
+images:
+  - location: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
+    arch: "x86_64"
+
+vmType: "vz"
+memory: "1GiB"
+cpus: 1
+
+networks:
+  - vzMode: "vmnet-shared"
+    macAddress: "02:00:00:00:00:02"
+
+provision:
+  - mode: system
+    script: |
+      sudo ip route replace default via 192.168.64.2
+      echo 'nameserver 192.168.64.2' | sudo tee /etc/resolv.conf
+
+mounts: []
