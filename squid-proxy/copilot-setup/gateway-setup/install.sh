@@ -19,7 +19,10 @@ sudo chown -R proxy:proxy /var/lib/ssl_db
 
 echo "[*] Enabling IP forwarding..."
 echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
-sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3129
+sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 3130
+sudo iptables -t nat -A PREROUTING -p tcp --dport 993 -j REDIRECT --to-port 3130
+# sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
 echo "[*] Applying configuration..."
 sudo cp squid.conf /etc/squid/squid.conf
