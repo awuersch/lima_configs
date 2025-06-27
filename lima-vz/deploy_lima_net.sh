@@ -8,25 +8,30 @@ cd lima_net
 # Create gateway instance config
 cat > default-gw.yaml <<EOF
 images:
-  - location: "https://cloud-images.ubuntu.com/releases/25.04/release/ubuntu-25.04-server-cloudimg-amd64.img"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release-20250424/ubuntu-25.04-server-cloudimg-amd64.img"
     arch: "x86_64"
+    digest: "sha256:ee752a88573fc8347b4082657293da54a7ba301e3d83cc935fedb4ab6d7129e2"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release-20250424/ubuntu-25.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+    digest: "sha256:9594596f24b6b47aeda06328a79c4626cdb279c3490e05ac1a9113c19c8f161b"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-amd64.img"
+    arch: "x86_64"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
 
 vmType: "vz"
-# memory: "1GiB"
-# cpus: 1
+memory: "1GiB"
+cpus: 1
 
 networks:
-  - vzMode: "vmnet-shared"
-    macAddress: "02:00:00:00:00:01"
+  - lima: shared
+    macAddress: ""
+    interface: ""
 
 provision:
   - mode: system
     script: |
-      sudo apt update
-      sudo apt install -y iptables dnsmasq net-tools
       sudo sysctl -w net.ipv4.ip_forward=1
-      sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-      echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf
 
 mounts: []
 EOF
@@ -34,29 +39,36 @@ EOF
 # Create routed client config
 cat > routed-client.yaml <<EOF
 images:
-  - location: "https://cloud-images.ubuntu.com/releases/25.04/release/ubuntu-25.04-server-cloudimg-amd64.img"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release-20250424/ubuntu-25.04-server-cloudimg-amd64.img"
     arch: "x86_64"
+    digest: "sha256:ee752a88573fc8347b4082657293da54a7ba301e3d83cc935fedb4ab6d7129e2"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release-20250424/ubuntu-25.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+    digest: "sha256:9594596f24b6b47aeda06328a79c4626cdb279c3490e05ac1a9113c19c8f161b"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-amd64.img"
+    arch: "x86_64"
+  - location: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
 
 vmType: "vz"
-# memory: "1GiB"
-# cpus: 1
+memory: "1GiB"
+cpus: 1
 
 networks:
-  - vzMode: "vmnet-shared"
-    macAddress: "02:00:00:00:00:02"
+  - lima: shared
+    macAddress: ""
+    interface: ""
 
 provision:
   - mode: system
     script: |
-      sudo ip route replace default via 192.168.64.2
-      echo 'nameserver 192.168.64.2' | sudo tee /etc/resolv.conf
+      sudo ip route replace default via 192.168.105.2
 
 mounts: []
 EOF
 
 # Start instances
-# limactl start ./default-gw.yaml --name=default-gw
-# limactl start ./routed-client.yaml --name=routed-client
+limactl start ./default-gw.yaml --name=default-gw
+limactl start ./routed-client.yaml --name=routed-client
 
-# echo "✅ Lima instances launched and network routing configured."
-
+echo "✅ Lima instances launched and network routing configured."
