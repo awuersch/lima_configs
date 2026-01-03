@@ -1,0 +1,8 @@
+# these are alternative foreign keys
+#   so a row can apply to
+#    a match, or to
+#    a game
+#
+# a record with value -1 must be added to 'matches' and 'games'
+#   in order for this alternative scheme to work properly
+statsside	match_id	game_id

@@ -1,0 +1,7 @@
+mets	name
+matches	run_id	path
+infoside	match_id	side
+statsside	match_id	game_id	side
+games	match_id	igame
+turns	game_id	iturn
+ranks	turn_id	rank

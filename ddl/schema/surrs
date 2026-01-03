@@ -1,0 +1,8 @@
+mets	met_id
+runs	run_id
+matches	match_id
+games	game_id
+infoside	infoside_id
+statsside	statsside_id
+turns	turn_id
+ranks	rank_id

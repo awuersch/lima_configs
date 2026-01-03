@@ -1,0 +1,7 @@
+met	float	0	0
+post_crawford	float	0
+dice	int	2
+move	int	2	0
+score	int	2
+probs	float	5
+prices	float	2	2

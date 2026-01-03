@@ -1,0 +1,20 @@
+# side is a player name
+side	X	O
+# result is a player name
+result	X	u	O
+# owner is a cube owner
+owner	c	X	O
+# onmove is an alias for side
+onmove	X	O
+# action is what a turn does
+action	move	double	drop	resign	set	set board	set dice	set cube	set cube-owner	take
+# skill is a performance judgment
+skill	very bad	bad	doubtful	none
+# luck is a roll-impact judgment
+luck	verybad	bad	none	good	verygood
+# evaltype is a kind of evaluation -- neural network plies, or rollout
+eval	eval	rollout
+# check is the kind of in-range check on a column
+check	int	owner	date	move	dice	probs
+# default is a kind of default - including "none" if no default
+default	none	null	true
