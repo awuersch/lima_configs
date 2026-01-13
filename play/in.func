@@ -1,0 +1,5 @@
+function enter { # name
+  NAME=$1
+  nerdctl exec -it $NAME -- bash -i
+}
+alias urlfound='curl --output /dev/null --silent --head --fail'
