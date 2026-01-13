@@ -1,0 +1,5 @@
+package	version	uri
+kubectl	v1.31.1	https://dl.k8s.io/release/v1.31.1/bin/linux-amd64.tar.gz
+aws-cli	latest	https://aws-cli.amazonaws.com/awscli-exe-linux-x86_64.zip
+gitleaks	v8.28.0	https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks.8.28.0.linux.x64.tar.gz
+zarf	v0.63.0	https://github.com/defenseunicorns/zarf/releases/download/v0.63.0/zarg_v0.63.0.linux.amd64
