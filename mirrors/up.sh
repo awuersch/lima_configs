@@ -12,19 +12,18 @@ NAME=$1; shift
 HOSTHOME=/Users/tony
 CLONES=workspace/src/git/github.com
 REPO=awuersch/lima_configs
-PLAY=$HOSTHOME/$CLONES/$REPO/play
+MIRRORS=$HOSTHOME/$CLONES/$REPO/mirrors
 
 # pull image
 IMG="kalilinux/kali-rolling"
 >&2 echo "pulling image $IMG"
 nerdctl pull --platform amd64 "$IMG"
 
-# run immage
+# run image
 nerdctl run -d \
   --platform amd64 \
   --name $NAME \
-  --mount type=bind,source=$PLAY/manifests,target=/mnt/manifests,readonly \
-  --mount type=tmpfs,target=/mnt/storage,rw \
+  --mount type=bind,source=$MIRRORS/manifests,target=/mnt/manifests,readonly \
   --platform amd64 \
   $IMG \
   bash -c \
@@ -44,14 +43,18 @@ done
   >&2 echo "not running"
   exit 1
 }
-nerdctl cp $PLAY/$NAME.sh $NAME:/tmp/entrypoint.sh
+nerdctl cp $MIRRORS/$NAME.sh $NAME:/tmp/entrypoint.sh
 for file in apt-rdepends.sh; do
-  nerdctl cp $PLAY/$file $NAME:/tmp/$file
+  nerdctl cp $MIRRORS/$file $NAME:/tmp/$file
 done
 
 # run entrypoint
 nerdctl exec $NAME -- bash -c 'bash -x /tmp/entrypoint.sh'
 
-# pick up apts
-rm -rf $HOME/apts
-nerdctl cp $NAME:root/uris $HOME
+# pick up apt detail
+rm -rf $HOME/apt
+nerdctl cp $NAME:root/apt/uris $HOME
+
+# pick up pypi json
+rm -rf $HOME/pypi
+nerdctl cp $NAME:root/pypi/json $HOME

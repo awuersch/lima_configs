@@ -1,6 +1,6 @@
 package	version
 urllib3	latest
 boto3	latest
-python-nmcp	latest
+python-nmap	latest
 python-whois	latest
-python-gitlab	latest
+python-gitlab	7.0.0
