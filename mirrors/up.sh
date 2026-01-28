@@ -24,7 +24,7 @@ nerdctl run -d \
   --platform amd64 \
   --name $NAME \
   --mount type=bind,source=$MIRRORS/manifests,target=/mnt/manifests,readonly \
-  --platform amd64 \
+  --mount type=bind,source=/mnt/archive,target=/mnt/archive \
   $IMG \
   bash -c \
   'while true; do sleep 100; done'
@@ -50,11 +50,3 @@ done
 
 # run entrypoint
 nerdctl exec $NAME -- bash -c 'bash -x /tmp/entrypoint.sh'
-
-# pick up apt detail
-rm -rf $HOME/apt
-nerdctl cp $NAME:root/apt/uris $HOME
-
-# pick up pypi json
-rm -rf $HOME/pypi
-nerdctl cp $NAME:root/pypi/json $HOME

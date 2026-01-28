@@ -13,21 +13,20 @@ function getvers { # pkgver
   pipgrip $pkgver
 }
 
-echo "alias urlfound='curl --output /dev/null --silent --head --fail'" >> $HOME/.bashrc
-
 # apt priming
 MOUNTS=/mnt
 MANIFESTS=$MOUNTS/manifests
-STORAGE=/tmp/storage
-mkdir -p $STORAGE
+STORAGE=/mnt/archive
 
 APTS=$STORAGE/apt
 PYPIS=$STORAGE/pypi
+RAWS=$STORAGE/raw.tsv
 
 mkdir -p $APTS/uris
 mkdir -p $PYPIS/json
 
-DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
+
 apt-get -yqq update
 apt-get -yqq upgrade
 # add apt repositories -- TBD
@@ -36,6 +35,7 @@ apt-get -yqq upgrade
 #
 # ".tsv" files are per-line tab-separated values with a header line on top
 # get package version metadata (avoiding header line by using tail +2)
+
 tail +2 $MANIFESTS/apt.tsv > /tmp/xx
 while IFS='	' read -a line; do
   pkg="${line[0]}"
@@ -57,9 +57,8 @@ while IFS='	' read -a line; do
   # remove if empty (only header line present)
   ((1==a[0])) && rm -f $dst
 done < /tmp/xx
-# copy storage to VM home
-cd; mkdir -p apt
-cp -r $APTS/uris apt
+
+echo "apts are primed"
 
 # pypi priming
 apt-get -yqq install --no-install-recommends \
@@ -89,6 +88,25 @@ while IFS='	' read -a line; do
   # remove if empty (only header line present)
   ((1==a[0])) && rm -f $dst
 done < /tmp/xx
-# copy storage to VM home
-cd; mkdir -p pypi
-cp -r $PYPIS/json pypi
+
+echo "pypis are primed"
+
+dst=$RAWS
+apt-get -yqq install --no-install-recommends curl ca-certificates
+tail +2 $MANIFESTS/raw.tsv > /tmp/xx
+{
+  echo "package version uri"
+  while IFS='	' read -a line; do
+    pkg="${line[0]}"
+    ver="${line[1]}"
+    uri="${line[2]}"
+    if curl --output /dev/null --silent --location --head --fail "$uri"
+    then
+     echo "${line[@]}"
+    else
+      >&2 echo "uri $uri not found"
+    fi || true
+  done < /tmp/xx
+} | awk -v OFS='\t' '{print $1,$2,$3}' > $dst
+
+echo "raws are primed"
