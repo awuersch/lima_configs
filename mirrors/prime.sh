@@ -18,6 +18,15 @@ MOUNTS=/mnt
 MANIFESTS=$MOUNTS/manifests
 STORAGE=/mnt/archive
 
+# dirs
+sharedir=/usr/share
+keyringsdir=${sharedir}/keyrings
+aptdir=/etc/apt
+aptsources=${aptdir}/sources.list.d
+
+# other
+arch=amd64
+
 LISTS=$STORAGE/lists
 APTS=$LISTS/apt
 PYPIS=$LISTS/pypi
@@ -29,12 +38,26 @@ mkdir -p $RAWS
 
 export DEBIAN_FRONTEND=noninteractive
 
-apt-get -yqq update
-apt-get -yqq upgrade
-# add apt repositories -- TBD
-#   hashicorp
-#   cloudfoundry
+# add apt repositories
 #
+hashicorpurl=https://apt.releases.hashicorp.com
+hashicorpgpg=${keyringsdir}/hashicorp-archive-keyring.gpg
+curl ${hashicorpurl}/gpg | gpg --dearmor -o ${hashicorpgpg}
+echo "deb [arch=${arch} signed-by=${hashicorpgpg}] ${hashicorpurl} bookworm main" > ${aptsources}/hashicorp.list
+#
+cloudfoundryurl=https://packages.cloudfoundry.org/debian
+cloudfoundrykey=${cloudfoundryurl}/cli.cloudfoundry.org.key
+cloudfoundrygpg=${keyringsdir}/cloudfoundry-keyring.gpg
+curl ${cloudfoundrykey} | gpg --dearmor -o ${cloudfoundrygpg}
+echo "deb [arch=${arch} signed-by=${cloudfoundrygpg}] ${cloudfoundryurl} stable main" > ${aptsources}/cloudfoundry.list
+#
+apt-get -yqq update
+apt-get -yqq install --no-install-recommends ca-certificates
+update-ca-certificates
+apt-get -yqq upgrade
+#
+TZ=UTC
+echo $TZ > /etc/timezone
 # ".tsv" files are per-line tab-separated values with a header line on top
 # get package version metadata (avoiding header line by using tail +2)
 
@@ -94,7 +117,6 @@ done < /tmp/xx
 echo "pypis are primed"
 
 dst=$RAWS/raw.tsv
-apt-get -yqq install --no-install-recommends curl ca-certificates
 tail +2 $MANIFESTS/raw.tsv > /tmp/xx
 {
   echo "package version uri"
