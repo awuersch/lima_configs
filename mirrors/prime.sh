@@ -18,12 +18,14 @@ MOUNTS=/mnt
 MANIFESTS=$MOUNTS/manifests
 STORAGE=/mnt/archive
 
-APTS=$STORAGE/apt
-PYPIS=$STORAGE/pypi
-RAWS=$STORAGE/raw.tsv
+LISTS=$STORAGE/lists
+APTS=$LISTS/apt
+PYPIS=$LISTS/pypi
+RAWS=$LISTS/raw
 
 mkdir -p $APTS/uris
 mkdir -p $PYPIS/json
+mkdir -p $RAWS
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -91,7 +93,7 @@ done < /tmp/xx
 
 echo "pypis are primed"
 
-dst=$RAWS
+dst=$RAWS/raw.tsv
 apt-get -yqq install --no-install-recommends curl ca-certificates
 tail +2 $MANIFESTS/raw.tsv > /tmp/xx
 {
