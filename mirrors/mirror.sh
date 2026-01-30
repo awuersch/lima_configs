@@ -82,7 +82,7 @@ Date: ${\(date -Ru)
 EOF
   do_hash "MD5Sum" "md5sum"
   do_hash "SHA1" "sha1sum"
-  do_hasn "SHA256" "sha256sum"
+  do_hash "SHA256" "sha256sum"
 }
 
 function create_mirror_apt_repo { #

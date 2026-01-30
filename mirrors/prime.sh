@@ -56,9 +56,11 @@ apt-get -yqq update
 # download and copy to-be-installeds
 apt-get -yqq install --download-only --no-install-recommends $aptapts $pypiapts
 mkdir -p $APTPKGS
+# allow glob
 set +f
 ls -lR /var/cache/apt/archives
 cp /var/cache/apt/archives/*.deb $APTPKGS
+# forbid glob again
 set -f
 apt-get -yqq install --no-install-recommends $aptapts
 echo "apt downloads are copied to $APTPKGS"
