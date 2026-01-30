@@ -1,27 +1,50 @@
 #!/usr/bin/env bash
 set -euf -o pipefail
 
-STORAGE /mnt/archives
-PACKAGES $STORAGE/packages
-ARCHIVES $PACKAGES/apt
-LOCALREPOS /local-repos
-APTREPO $LOCALREPO/apt-repo
-APTREPO $APTREPO/log
-PYPIREPO /pypi
-PYPILOG $PYPIREPO/log
-PGPDIR $APTREPO/pgp
-APTSOURCES /etc/apt/sources.list.d
-VENV /opt/venv
-PYPISOURCE pypi-mirror
-APTSOURCE kali-mirror
-GEMSOURCE gemirror
-arch amd64
-localhost 127.0.0.1
-aptport 8000
-pypiport 8001
-gemport 2000
-APTURL http://$localhost:$aptport/apt-repo
-PYPIURL http://$localhost:$pypiport/simple
+STORAGE=/mnt/archives
+PACKAGES=$STORAGE/packages
+ARCHIVES=$PACKAGES/apt
+LOCALREPOS=/local-repos
+APTREPO=$LOCALREPO/apt-repo
+APTREPO=$APTREPO/log
+PYPIREPO=/pypi
+PYPILOG=$PYPIREPO/log
+PGPDIR=$APTREPO/pgp
+APTSOURCES=/etc/apt/sources.list.d
+VENV=/opt/venv
+PYPISOURCE=pypi-mirror
+APTSOURCE=kali-mirror
+GEMSOURCE=gemirror
+arch=amd64
+localhost=127.0.0.1
+aptport=8000
+pypiport=8001
+gemport=2000
+APTURL=http://$localhost:$aptport/apt-repo
+PYPIURL=http://$localhost:$pypiport/simple
+
+# dirs
+rootdir=/root
+localdir=/usr/local
+godir=${localdir}/go
+gobindir=${godir}/bin
+rootgodir=${rootdir}/go
+rootgobindir=${rootgodir}/bin
+rootgosrcdir=${rootgodir}/src
+
+# other
+arch=amd64
+GOPATH=${rootgodir}
+GOBIN=${rootgobindir}
+GOSRC=${rootgosrcdir}
+GOSUMDB=sum.golang.org
+PATH="${gobindir}:$PATH"
+
+# versions for go and go installs
+GO_VERSION=1.25.6
+JB_VERSION=0.6.0
+JSONNET_VERSION=0.21.0
+YQ_VERSION=4.48.1
 
 # cf:
 # https://github.com/earthly/example-apt-repo/blob/main/Earthfile
@@ -138,3 +161,27 @@ if [[ $# -eq 0 ]]; then
 else
   exec "$@"
 fi
+
+# download and install go
+curl -fsSL https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz | tar -C ${localdir} -xzf -
+# install go tools for pullstore
+mkdir -p $GOPATH
+mkdir -p $GOBIN $GOSRC
+go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@v${JB_VERSION}
+go install github.com/google/go-jsonnet/cmd/jsonnet@v${JSONNET_VERSION}
+go install github.com/mikefarah/yq/v4@v${YQ_VERSION}
+
+# apt pullstore test
+apt-get -yqq install --download-only --no-install-recommends \
+  wget tmux gron sudo
+# apt install for pypi for pullstore
+apt-get -yqq install --no-install-recommends python3-pip python3-poetry
+# pypi mirror
+mkdir -p $VENV
+cd $VENV
+poetry init --python=">=3.13,<4.0" --no-interaction -vvv
+poetry add python-pypi-mirror
+eval ${poetry env activate}
+pypi-mirror download -d downloads \
+  requests GitPython bc-python-hcl2 giturlparse python-gitlab \
+  xmltodict elasticsearch8 boto3
