@@ -3,3 +3,4 @@ kubectl	v1.35.0	https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl
 aws-cli	latest	https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
 gitleaks	v8.30.0	https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_arm64.tar.gz
 zarf	v0.69.0	https://github.com/zarf-dev/zarf/releases/download/v0.69.0/zarf_v0.69.0_Linux_amd64
+golang	1.25.6	https://dl.google.com/go/go1.25.6.linux-amd64.tar.gz

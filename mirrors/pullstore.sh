@@ -44,25 +44,13 @@ mkdir -p $PYPIS/json
 mkdir -p $RAWS
 
 aptapts="ca-certificates curl gnupg"
-pypiapts="python3-poetry"
+pypiapts="python3-poetry pipgrip""
 otherapts="jq vim"
 maybeapts="python3-pip python3-venv"
-pypipypis="pipgrip"
 
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -yqq update
-
-# download and copy to-be-installeds
-apt-get -yqq install --download-only --no-install-recommends $aptapts $pypiapts
-mkdir -p $APTPKGS
-set +f
-ls -lR /var/cache/apt/archives
-cp /var/cache/apt/archives/*.deb $APTPKGS
-set -f
-apt-get -yqq install --no-install-recommends $aptapts
-echo "apt downloads are copied to $APTPKGS"
-
 apt-get -yqq install --no-install-recommends $aptapts
 
 # add apt repositories
@@ -87,7 +75,6 @@ apt-get -yqq upgrade
 
 # ".tsv" files are per-line tab-separated values with a header line on top
 # get package version metadata (avoiding header line by using tail +2)
-trap 'rm -f /tmp/xx' EXIT ERR
 tail +2 $MANIFESTS/apt.tsv > /tmp/xx
 while IFS='	' read -a line; do
   pkg="${line[0]}"
@@ -113,13 +100,11 @@ done < /tmp/xx
 echo "apts are primed"
 
 # pypi priming
-apt-get -yqq install --download-only --no-install-recommends \
-  $pypiapts
 apt-get -yqq install --no-install-recommends \
   $pypiapts
 cd; mkdir -p venv; cd venv
 poetry init --python=">=3.13,<4.0" --no-interaction -vvv
-poetry add $pypipypis
+poetry add pipgrip
 eval $(poetry env activate)
 tail +2 $MANIFESTS/pypi.tsv > /tmp/xx
 while IFS='	' read -a line; do

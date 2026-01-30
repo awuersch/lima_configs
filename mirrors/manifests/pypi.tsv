@@ -1,4 +1,5 @@
 package	version
+pipgrip	latest
 urllib3	latest
 boto3	latest
 python-nmap	latest

@@ -199,6 +199,11 @@ provision:
     mkdir /mnt/archive
     mount -t ext4 /volumes/kind-worker/ext4fs.img /mnt/archive -o loop
     chown -R {{.User}}:{{.User}} /mnt/archive
+- mode: user
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    echo "alias n='nerdctl'" >> {{.Home}}/.bash_aliases
 # # `system` is executed with root privileges
 # - mode: system
 #   script: |
