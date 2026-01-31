@@ -49,4 +49,4 @@ for file in apt-rdepends.sh; do
 done
 
 # run entrypoint
-nerdctl exec $NAME -- bash -c 'bash -x /tmp/entrypoint.sh'
+nerdctl exec $NAME -- bash -c 'bash /tmp/entrypoint.sh'

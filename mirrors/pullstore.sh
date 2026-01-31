@@ -39,18 +39,33 @@ APTPKGS=$PKGS/apt
 PYPIPKGS=$PKGS/pypi
 RAWPKGS=$PKGS/raw
 
+APTCACHE=/var/cache/apt/archives
+
 mkdir -p $APTS/uris
 mkdir -p $PYPIS/json
 mkdir -p $RAWS
 
-aptapts="ca-certificates curl gnupg"
-pypiapts="python3-poetry pipgrip""
+aptapts="ca-certificates curl gnupg python3"
+pypiapts="python3-poetry pipgrip"
 otherapts="jq vim"
 maybeapts="python3-pip python3-venv"
 
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -yqq update
+
+# download to-be-installeds
+mkdir -p $INSTALLEDS
+# allow glob
+set +f
+for apt in $aptapts $pypiapts; do
+  mkdir -p $INSTALLEDS/$apt
+  apt-get -yqq install --download-only --no-install-recommends $apt
+  mv $APTCACHE/*.deb $INSTALLEDS/$apt
+done
+# forbid glob again
+set -f
+
 apt-get -yqq install --no-install-recommends $aptapts
 
 # add apt repositories
@@ -73,78 +88,59 @@ echo $TZ > /etc/timezone
 apt-get -yqq update
 apt-get -yqq upgrade
 
-# ".tsv" files are per-line tab-separated values with a header line on top
-# get package version metadata (avoiding header line by using tail +2)
-tail +2 $MANIFESTS/apt.tsv > /tmp/xx
-while IFS='	' read -a line; do
-  pkg="${line[0]}"
-  ver="${line[1]}"
-  if [[ "${ver}" == "latest" ]]
-  then
-    pkgver="${pkg}"
-  else
-    pkgver="${pkg}=${ver}"
-  fi
-  dst="$APTS/uris/${pkg}.tsv"
-  {
-    echo "uri deb size signature"
-    geturis "${pkgver}" || true
-  } | awk -v OFS='\t' '{print $1,$2,$3,$4}' | tr -d "'" > $dst
-  # remove .tsv file if empty
-  # get line length of dst (format ::= <number> ' ' <filename>)
-  a=($(wc -l $dst))
-  # remove if empty (only header line present)
-  ((1==a[0])) && rm -f $dst
-done < /tmp/xx
+trap 'rm -f /tmp/xx' EXIT ERR
 
-echo "apts are primed"
+# need to unquote version string to get colons, etc
+function unquote_version { # version
+  local code="import urllib.parse; print(urllib.parse.unquote('$1'))"
+  echo "$(python3 -c "${code}")"
+}
 
-# pypi priming
-apt-get -yqq install --no-install-recommends \
-  $pypiapts
-cd; mkdir -p venv; cd venv
-poetry init --python=">=3.13,<4.0" --no-interaction -vvv
-poetry add pipgrip
-eval $(poetry env activate)
-tail +2 $MANIFESTS/pypi.tsv > /tmp/xx
-while IFS='	' read -a line; do
-  pkg="${line[0]}"
-  ver="${line[1]}"
-  if [[ "${ver}" == "latest" ]]
-  then
-    pkgver="${pkg}"
-  else
-    pkgver="${pkg}==${ver}"
-  fi
-  dst="$PYPIS/json/${pkg}.tsv"
-  {
-    echo "package==version"
-    pipgrip "${pkgver}" || true
-  } | awk -F "==" -v OFS='\t' '{print $1,$2}' > $dst
-  # remove .tsv file if empty
-  # get line length of dst (format ::= <number> ' ' <filename>)
-  a=($(wc -l $dst))
-  # remove if empty (only header line present)
-  ((1==a[0])) && rm -f $dst
-done < /tmp/xx
 
-echo "pypis are primed"
-
-dst=$RAWS/raw.tsv
-tail +2 $MANIFESTS/raw.tsv > /tmp/xx
-{
-  echo "package version uri"
+# read primed apts
+# allow glob
+set +f
+shopt -s nullglob
+for f in $APTS/uris/*.tsv; do
+  # get basename of f and strip off suffix
+  pkg=$(basename $f .tsv)
+  >&2 echo "seeking $pkg in $f"
+  tail +2 $f > /tmp/xx
   while IFS='	' read -a line; do
-    pkg="${line[0]}"
-    ver="${line[1]}"
-    uri="${line[2]}"
-    if curl --output /dev/null --silent --location --head --fail "$uri"
-    then
-     echo "${line[@]}"
+    url="${line[0]}"
+    deb="${line[1]}"
+    size="${line[2]}"
+    signature="${line[3]}"
+    debpkg=${deb%%_*}
+    >&2 echo "looking at $debpkg"
+    if [[ X"$debpkg" == X"$pkg" ]]; then
+      >&2 echo "$pkg in $debpkg"
+      x=${deb#*_}
+      version="$(unquote_version ${x%%_*})"
+      if [[ -f $APTPKGS/$deb ]]; then
+        >&2 echo "$pkg $version is already in $APTPKGS"
+      else
+        >&2 echo "pulling $pkg $version"
+        apt-get -yqq install --download-only --no-install-recommends \
+          "${pkg}=${version}"
+        >&2 echo "pulled $pkg $version"
+        debs=($APTCACHE/*.deb)
+        if (( ${#debs[@]} > 0 )); then
+          # TODO: check size and signature of deb file here!
+          mv $APTCACHE/*.deb $APTPKGS
+          >&2 echo "stored $pkg $version and dependencies in $APTPKGS"
+        else
+          >&2 echo "no deb files were found for $pkg $version !!"
+        fi
+        break
+      fi
     else
-      >&2 echo "uri $uri not found"
-    fi || true
+      >&2 echo "$pkg not in $debpkg"
+    fi
   done < /tmp/xx
-} | awk -v OFS='\t' '{print $1,$2,$3}' > $dst
+done
+# forbid glob again
+shopt -u nullglob
+set -f
 
-echo "raws are primed"
+echo "apts are pulled and stored"

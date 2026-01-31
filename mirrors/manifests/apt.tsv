@@ -1,8 +1,4 @@
 package	version
-ca-certificates	latest
-curl	latest
-gnupg	latest
-python3-poetry	latest
 python3-pip	latest
 python3-venv	latest
 jq	latest

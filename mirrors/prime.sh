@@ -36,6 +36,8 @@ RAWS=$LISTS/raw
 
 PKGS=$STORAGE/pkgs
 APTPKGS=$PKGS/apt
+INSTALLEDS=$APTPKGS/installed
+APTCACHE=/var/cache/apt/archives
 PYPIPKGS=$PKGS/pypi
 RAWPKGS=$PKGS/raw
 
@@ -53,17 +55,19 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get -yqq update
 
-# download and copy to-be-installeds
-apt-get -yqq install --download-only --no-install-recommends $aptapts $pypiapts
-mkdir -p $APTPKGS
+# download to-be-installeds
+mkdir -p $INSTALLEDS
 # allow glob
 set +f
-ls -lR /var/cache/apt/archives
-cp /var/cache/apt/archives/*.deb $APTPKGS
+for apt in $aptapts $pypiapts; do
+  mkdir -p $INSTALLEDS/$apt
+  apt-get -yqq install --download-only --no-install-recommends $apt
+  mv $APTCACHE/*.deb $INSTALLEDS/$apt
+done
 # forbid glob again
 set -f
-apt-get -yqq install --no-install-recommends $aptapts
-echo "apt downloads are copied to $APTPKGS"
+
+echo "apt downloads are copied to $INSTALLEDS"
 
 apt-get -yqq install --no-install-recommends $aptapts
 
@@ -115,8 +119,6 @@ done < /tmp/xx
 echo "apts are primed"
 
 # pypi priming
-apt-get -yqq install --download-only --no-install-recommends \
-  $pypiapts
 apt-get -yqq install --no-install-recommends \
   $pypiapts
 cd; mkdir -p venv; cd venv
