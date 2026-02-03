@@ -3,7 +3,7 @@ python3-pip	latest
 python3-venv	latest
 jq	latest
 vim	latest
-trufflehog	3.91.0-0kali1
+trufflehog	3.92.5-0kali1
 obsidian	1.7.7-0kali1
 gowitness	latest
 nodejs	latest

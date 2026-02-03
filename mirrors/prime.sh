@@ -7,11 +7,29 @@ function geturis { # pkgver
   apt-get -yqq install --no-install-recommends --print-uris $pkgver
 }
 
+
 # the magic command for pypi
 function getvers { # pkgver
   local pkgver=$1
   pipgrip $pkgver
 }
+
+
+function get_depends { # pkgver dst
+  local pkgver="$1"
+  local dst="$2"
+  {
+    echo "uri deb size signature"
+    geturis "${pkgver}" || true
+  } | awk -v OFS='\t' '{print $1,$2,$3,$4}' | tr -d "'" > $dst
+  # remove .tsv file if empty
+  # get line length of dst (format ::= <number> ' ' <filename>)
+  local a=($(wc -l $dst))
+  # remove if empty (only header line present)
+  ((1==a[0])) && rm -f $dst
+  return 0
+}
+
 
 # apt priming
 MOUNTS=/mnt
@@ -49,23 +67,25 @@ aptapts="ca-certificates curl gnupg"
 pypiapts="python3-poetry"
 otherapts="jq vim"
 maybeapts="python3-pip python3-venv"
-pypipypis="pipgrip"
+pypipypis="pipgrip pypi-mirror"
 
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -yqq update
 
-# download to-be-installeds
+# get dependencies and download to-be-installeds
 mkdir -p $INSTALLEDS
-# allow glob
-set +f
-for apt in $aptapts $pypiapts; do
-  mkdir -p $INSTALLEDS/$apt
-  apt-get -yqq install --download-only --no-install-recommends $apt
-  mv $APTCACHE/*.deb $INSTALLEDS/$apt
+for pkg in $aptapts $pypiapts; do
+  dst="$APTS/uris/${pkg}.tsv"
+  get_depends ${pkg} ${dst}
+  mkdir -p $INSTALLEDS/$pkg
+  apt-get -yqq install --download-only --no-install-recommends $pkg
+  # allow glob
+  set +f
+  mv $APTCACHE/*.deb $INSTALLEDS/$pkg
+  # forbid glob again
+  set -f
 done
-# forbid glob again
-set -f
 
 echo "apt downloads are copied to $INSTALLEDS"
 
@@ -105,15 +125,7 @@ while IFS='	' read -a line; do
     pkgver="${pkg}=${ver}"
   fi
   dst="$APTS/uris/${pkg}.tsv"
-  {
-    echo "uri deb size signature"
-    geturis "${pkgver}" || true
-  } | awk -v OFS='\t' '{print $1,$2,$3,$4}' | tr -d "'" > $dst
-  # remove .tsv file if empty
-  # get line length of dst (format ::= <number> ' ' <filename>)
-  a=($(wc -l $dst))
-  # remove if empty (only header line present)
-  ((1==a[0])) && rm -f $dst
+  get_depends "${pkgver}" $dst
 done < /tmp/xx
 
 echo "apts are primed"

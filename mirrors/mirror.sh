@@ -152,11 +152,14 @@ apt-get -yqq install --download-only --no-install-recommends \
 # apt install for pypi for pullstore
 apt-get -yqq install --no-install-recommends python3-pip python3-poetry
 # pypi mirror
+VENV=/opt/venv
 mkdir -p $VENV
 cd $VENV
 poetry init --python=">=3.13,<4.0" --no-interaction -vvv
+# consider morgan as an alt to python-pypi-mirror
 poetry add python-pypi-mirror
 eval ${poetry env activate}
 pypi-mirror download -d downloads \
   requests GitPython bc-python-hcl2 giturlparse python-gitlab \
   xmltodict elasticsearch8 boto3
+pypi-mirror create -d downloads -m simple

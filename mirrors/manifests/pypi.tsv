@@ -1,5 +1,6 @@
 package	version
 pipgrip	latest
+pypi-mirror	latest
 urllib3	latest
 boto3	latest
 python-nmap	latest
