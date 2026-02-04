@@ -1,19 +1,19 @@
 #! /usr/bin/env bash
 set -euf
 
-# the magic command for apt ...
+. /tmp/shared.sh
+
+# the magic command for apt
 function geturis { # pkgver
   local pkgver=$1
   apt-get -yqq install --no-install-recommends --print-uris $pkgver
 }
-
 
 # the magic command for pypi
 function getvers { # pkgver
   local pkgver=$1
   pipgrip $pkgver
 }
-
 
 function get_depends { # pkgver dst
   local pkgver="$1"
@@ -30,64 +30,30 @@ function get_depends { # pkgver dst
   return 0
 }
 
-
-# apt priming
-MOUNTS=/mnt
-MANIFESTS=$MOUNTS/manifests
-STORAGE=/mnt/archive
-
-# dirs
-sharedir=/usr/share
-keyringsdir=${sharedir}/keyrings
-aptdir=/etc/apt
-aptsources=${aptdir}/sources.list.d
-rootdir=/root
-localdir=/usr/local
-
-# other
-arch=amd64
-
-LISTS=$STORAGE/lists
-APTS=$LISTS/apt
-PYPIS=$LISTS/pypi
-RAWS=$LISTS/raw
-
-PKGS=$STORAGE/pkgs
-APTPKGS=$PKGS/apt
-INSTALLEDS=$APTPKGS/installed
-APTCACHE=/var/cache/apt/archives
-PYPIPKGS=$PKGS/pypi
-RAWPKGS=$PKGS/raw
-
-mkdir -p $APTS/uris
-mkdir -p $PYPIS/json
-mkdir -p $RAWS
-
-aptapts="ca-certificates curl gnupg"
-pypiapts="python3-poetry"
-otherapts="jq vim"
-maybeapts="python3-pip python3-venv"
-pypipypis="pipgrip pypi-mirror"
-
-export DEBIAN_FRONTEND=noninteractive
-
-apt-get -yqq update
+# check if a manifest entry is already installed
+function contains_element { # match arr
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
 
 # get dependencies and download to-be-installeds
-mkdir -p $INSTALLEDS
 for pkg in $aptapts $pypiapts; do
   dst="$APTS/uris/${pkg}.tsv"
   get_depends ${pkg} ${dst}
-  mkdir -p $INSTALLEDS/$pkg
-  apt-get -yqq install --download-only --no-install-recommends $pkg
-  # allow glob
-  set +f
-  mv $APTCACHE/*.deb $INSTALLEDS/$pkg
-  # forbid glob again
-  set -f
 done
 
-echo "apt downloads are copied to $INSTALLEDS"
+echo "apt dependencies are in $APTS/uris"
+
+apt-get -yqq install --download-only --no-install-recommends $aptapts $pypiapts
+# allow glob
+set +f; shopt -s nullglob
+mv $APTCACHE/*.deb $APTPKGS
+# forbid glob again
+shopt -u nullglob; set -f
+
+echo "apt debs are in $APTPKGS"
 
 apt-get -yqq install --no-install-recommends $aptapts
 
@@ -120,6 +86,10 @@ while IFS='	' read -a line; do
   ver="${line[1]}"
   if [[ "${ver}" == "latest" ]]
   then
+    if $(contains_element ${pkg} ${installedapts[@]}); then
+       # manifest line is already installed
+       continue
+    fi
     pkgver="${pkg}"
   else
     pkgver="${pkg}=${ver}"

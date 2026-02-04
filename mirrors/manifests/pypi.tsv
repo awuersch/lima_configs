@@ -3,6 +3,7 @@ pipgrip	latest
 pypi-mirror	latest
 urllib3	latest
 boto3	latest
+pycurl	latest
 python-nmap	latest
 python-whois	latest
 python-gitlab	7.0.0

@@ -44,7 +44,7 @@ done
   exit 1
 }
 nerdctl cp $MIRRORS/$NAME.sh $NAME:/tmp/entrypoint.sh
-for file in apt-rdepends.sh; do
+for file in apt-rdepends.sh shared.sh; do
   nerdctl cp $MIRRORS/$file $NAME:/tmp/$file
 done
 

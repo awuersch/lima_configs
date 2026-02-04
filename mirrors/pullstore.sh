@@ -1,60 +1,31 @@
 #! /usr/bin/env bash
 set -euf
 
-# apt priming
-MOUNTS=/mnt
-MANIFESTS=$MOUNTS/manifests
-STORAGE=/mnt/archive
+# common defines used by prime and pullstore
+. /tmp/shared.sh
 
-# dirs
-sharedir=/usr/share
-keyringsdir=${sharedir}/keyrings
-aptdir=/etc/apt
-aptsources=${aptdir}/sources.list.d
-rootdir=/root
-localdir=/usr/local
+function copy_to_cache_and_install { # apts
+  local apt apts="$@"
+  cd $APTPKGS
+  for apt in $apts; do
+    # copy deb files to default apt cache
+    cp $(tail +2 $APTS/uris/${apt}.tsv | cut -d '	' -f2) $APTCACHE
+  done
+  apt-get -yqq install --no-install-recommends $apts
+  # remove from cache
+  # allow glob
+  set +f
+  if [[ X"$APTCACHE/*.deb" != X"$APTCACHE/*.deb" ]]; then
+    # yes, there are .deb files there ...
+    rm $APTCACHE/*.deb;
+  fi
+  # forbid glob again
+  set -f
+  cd -
+}
 
-# other
-arch=amd64
-
-LISTS=$STORAGE/lists
-APTS=$LISTS/apt
-PYPIS=$LISTS/pypi
-RAWS=$LISTS/raw
-
-PKGS=$STORAGE/pkgs
-APTPKGS=$PKGS/apt
-INSTALLEDS=$APTPKGS/installed
-APTCACHE=/var/cache/apt/archives
-PYPIPKGS=$PKGS/pypi
-RAWPKGS=$PKGS/raw
-
-mkdir -p $APTS/uris
-mkdir -p $PYPIS/json
-mkdir -p $RAWS
-
-aptapts="ca-certificates curl gnupg python3"
-pypiapts="python3-poetry"
-otherapts="jq vim"
-maybeapts="python3-pip python3-venv"
-
-export DEBIAN_FRONTEND=noninteractive
-
-apt-get -yqq update
-
-# download to-be-installeds
-mkdir -p $INSTALLEDS
-# allow glob
-set +f
-for apt in $aptapts $pypiapts; do
-  mkdir -p $INSTALLEDS/$apt
-  apt-get -yqq install --download-only --no-install-recommends $apt
-  mv $APTCACHE/*.deb $INSTALLEDS/$apt
-done
-# forbid glob again
-set -f
-
-apt-get -yqq install --no-install-recommends $aptapts
+# copy debs from $APTPKGS and install
+copy_to_cache_and_install $aptapts
 
 # add apt repositories
 #
@@ -76,21 +47,19 @@ echo $TZ > /etc/timezone
 apt-get -yqq update
 apt-get -yqq upgrade
 
-trap 'rm -f /tmp/xx' EXIT ERR
-
 # need to unquote version string to get colons, etc
 function unquote_version { # version
   local code="import urllib.parse; print(urllib.parse.unquote('$1'))"
   echo "$(python3 -c "${code}")"
 }
 
+trap 'rm -f /tmp/xx' EXIT ERR
 
 skip_apts=true
 if [[ X"${skip_apts}" != X"true" ]]; then
   # read primed apts
-  # allow glob
-  set +f
-  shopt -s nullglob
+  # allow glob, and replace empty globs with an empty string
+  set +f; shopt -s nullglob
   for f in $APTS/uris/*.tsv; do
     # get basename of f and strip off suffix
     pkg=$(basename $f .tsv)
@@ -130,14 +99,14 @@ if [[ X"${skip_apts}" != X"true" ]]; then
     done < /tmp/xx
   done
   # forbid glob again
-  shopt -u nullglob
-  set -f
+  shopt -u nullglob; set -f
 
   echo "apts are pulled and stored"
 fi
 
-# install python apts
-apt-get -yqq install --no-install-recommends $pypiapts
+# copy pypi debs from $APTPKGS and install
+copy_to_cache_and_install $pypiapts
+
 # set up venv and mirror for pulling python libraries
 VENV=/opt/venv
 mkdir -p $VENV
@@ -168,3 +137,15 @@ shopt -u nullglob
 set -f
 
 echo "pypis are pulled and stored"
+
+# curl raw URLs
+cd $RAWPKGS
+tail +2 $RAWS/raw.tsv > /tmp/xx
+while IFS='	' read -a line; do
+  pkg="${line[0]}"
+  ver="${line[1]}"
+  uri="${line[2]}"
+  curl --silent --fail -LO "$uri" || true
+done < /tmp/xx
+
+echo "raws are pulled and stored"
