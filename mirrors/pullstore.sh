@@ -115,8 +115,7 @@ poetry init --python=">=3.13,<4.0" --no-interaction -vvv
 poetry add python-pypi-mirror
 eval $(poetry env activate)
 # allow glob
-set +f
-shopt -s nullglob
+set +f; shopt -s nullglob
 for f in $PYPIS/json/*.tsv; do
   # get basename of f and strip off suffix
   pkg=$(basename $f .tsv)
@@ -133,8 +132,7 @@ for f in $PYPIS/json/*.tsv; do
   done < /tmp/xx
 done
 # forbid glob again
-shopt -u nullglob
-set -f
+shopt -u nullglob; set -f
 
 echo "pypis are pulled and stored"
 
