@@ -6,7 +6,7 @@ set -euf
 # the magic command for apt
 function geturis { # pkgver
   local pkgver=$1
-  apt-get -yqq install --no-install-recommends --print-uris $pkgver
+  apt-get -qq install --no-install-recommends --print-uris $pkgver
 }
 
 # the magic command for pypi
@@ -38,15 +38,25 @@ function contains_element { # match arr
   return 1
 }
 
+# main
+
 # get dependencies and download to-be-installeds
-for pkg in $aptapts $pypiapts; do
+echo "getting apt package dependencies"
+
+for pkg in "${installedapts[@]}"; do
   dst="$APTS/uris/${pkg}.tsv"
   get_depends ${pkg} ${dst}
 done
 
 echo "apt dependencies are in $APTS/uris"
 
-apt-get -yqq install --download-only --no-install-recommends $aptapts $pypiapts
+echo "downloading apt packages ${installedapts[@]}"
+apt-get -qq install \
+  --download-only --no-install-recommends \
+  "${installedapts[@]}"
+
+echo "${installedapts[@]} are downloaded."
+
 # allow glob
 set +f; shopt -s nullglob
 mv $APTCACHE/*.deb $APTPKGS
@@ -55,27 +65,33 @@ shopt -u nullglob; set -f
 
 echo "apt debs are in $APTPKGS"
 
-apt-get -yqq install --no-install-recommends $aptapts
+# apt apt installing with no install messages
+
+echo "installing apt packages $aptapts ..."
+apt-get -qq install --no-install-recommends $aptapts < /dev/null > /dev/null
+echo "$aptapts are installed."
 
 # add apt repositories
 #
 hashicorpurl=https://apt.releases.hashicorp.com
 hashicorpgpg=${keyringsdir}/hashicorp-archive-keyring.gpg
-curl ${hashicorpurl}/gpg | gpg --dearmor -o ${hashicorpgpg}
+curl -fsSL ${hashicorpurl}/gpg | gpg --dearmor -o ${hashicorpgpg}
 echo "deb [arch=${arch} signed-by=${hashicorpgpg}] ${hashicorpurl} bookworm main" > ${aptsources}/hashicorp.list
 #
 cloudfoundryurl=https://packages.cloudfoundry.org/debian
 cloudfoundrykey=${cloudfoundryurl}/cli.cloudfoundry.org.key
 cloudfoundrygpg=${keyringsdir}/cloudfoundry-keyring.gpg
-curl ${cloudfoundrykey} | gpg --dearmor -o ${cloudfoundrygpg}
+curl -fsSL ${cloudfoundrykey} | gpg --dearmor -o ${cloudfoundrygpg}
 echo "deb [arch=${arch} signed-by=${cloudfoundrygpg}] ${cloudfoundryurl} stable main" > ${aptsources}/cloudfoundry.list
 #
 TZ=UTC
 echo $TZ > /etc/timezone
 
 # update with new repositories
-apt-get -yqq update
-apt-get -yqq upgrade
+apt-get -qq update
+apt-get -qq upgrade < /dev/null > /dev/null
+
+echo "priming, i.e., getting apt dependencies from manifest."
 
 # ".tsv" files are per-line tab-separated values with a header line on top
 # get package version metadata (avoiding header line by using tail +2)
@@ -100,13 +116,22 @@ done < /tmp/xx
 
 echo "apts are primed"
 
-# pypi priming
-apt-get -yqq install --no-install-recommends \
-  $pypiapts
-cd; mkdir -p venv; cd venv
+# pypi apt installing with no install messages
+
+echo "installing apt packages $pypiapts ..."
+apt-get -qq install --no-install-recommends $pypiapts < /dev/null > /dev/null
+echo "$pypiapts are installed."
+
+echo "installing pypi packages $pypipypis ..."
+poetry config virtualenvs.in-project true
+cd $VENV
 poetry init --python=">=3.13,<4.0" --no-interaction -vvv
-poetry add $pypipypis
+poetry add $pypipypis --quiet --no-interaction
+echo "$pypipypis are installed."
 eval $(poetry env activate)
+
+echo "priming, i.e., getting pypi dependencies from manifest."
+
 tail +2 $MANIFESTS/pypi.tsv > /tmp/xx
 while IFS='	' read -a line; do
   pkg="${line[0]}"

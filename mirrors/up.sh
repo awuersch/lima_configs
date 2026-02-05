@@ -13,18 +13,21 @@ HOSTHOME=/Users/tony
 CLONES=workspace/src/git/github.com
 REPO=awuersch/lima_configs
 MIRRORS=$HOSTHOME/$CLONES/$REPO/mirrors
+STORAGE=/mnt/archive
+PLATFORM=arm64
 
 # pull image
 IMG="kalilinux/kali-rolling"
->&2 echo "pulling image $IMG"
-nerdctl pull --platform amd64 "$IMG"
+>&2 echo "pulling image $IMG for platform $PLATFORM"
+nerdctl pull --platform $PLATFORM "$IMG"
 
 # run image
+# bind manifests and storage to container
 nerdctl run -d \
-  --platform amd64 \
   --name $NAME \
+  --platform $PLATFORM \
   --mount type=bind,source=$MIRRORS/manifests,target=/mnt/manifests,readonly \
-  --mount type=bind,source=/mnt/archive,target=/mnt/archive \
+  --mount type=bind,source=$STORAGE,target=$STORAGE \
   $IMG \
   bash -c \
   'while true; do sleep 100; done'
@@ -49,4 +52,4 @@ for file in apt-rdepends.sh shared.sh; do
 done
 
 # run entrypoint
-nerdctl exec $NAME -- bash -c 'bash -x /tmp/entrypoint.sh'
+nerdctl exec $NAME -- bash -c 'bash /tmp/entrypoint.sh'

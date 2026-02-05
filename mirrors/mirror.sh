@@ -1,34 +1,7 @@
 #!/usr/bin/env bash
 set -euf -o pipefail
 
-STORAGE=/mnt/archives
-PACKAGES=$STORAGE/packages
-ARCHIVES=$PACKAGES/apt
-LOCALREPOS=/local-repos
-APTREPO=$LOCALREPO/apt-repo
-APTREPO=$APTREPO/log
-PYPIREPO=/pypi
-PYPILOG=$PYPIREPO/log
-PGPDIR=$APTREPO/pgp
-APTSOURCES=/etc/apt/sources.list.d
-VENV=/opt/venv
-PYPISOURCE=pypi-mirror
-APTSOURCE=kali-mirror
-GEMSOURCE=gemirror
-arch=amd64
-localhost=127.0.0.1
-aptport=8000
-pypiport=8001
-gemport=2000
-APTURL=http://$localhost:$aptport/apt-repo
-PYPIURL=http://$localhost:$pypiport/simple
-
-# dirs
-rootdir=/root
-localdir=/usr/local
-
-# other
-arch=amd64
+. /tmp/shared.sh
 
 # cf:
 # https://github.com/earthly/example-apt-repo/blob/main/Earthfile
@@ -72,13 +45,13 @@ function generate_apt_release { #
   cat << EOF
 Origin: Mirror Apt Repository
 Label: Apt
-Suite: kali-mirror
-Codename: kali-mirror
+Suite: $APTSOURCE
+Codename: $APTSOURCE
 Version: 1.0
 Architectures: ${arch}
 Components: main
 Description: A local apt repository
-Date: ${\(date -Ru)
+Date: $(date -Ru)
 EOF
   do_hash "MD5Sum" "md5sum"
   do_hash "SHA1" "sha1sum"
@@ -86,8 +59,7 @@ EOF
 }
 
 function create_mirror_apt_repo { #
-  mkdir -p ${APTREPO}
-  cd ${APTREPO}
+  cd ${APTMIRROR}
   for d in pgp pool/main dists/${APTSOURCE}/main/binary-${arch}; do
     mkdir -p $d
   done
@@ -95,13 +67,13 @@ function create_mirror_apt_repo { #
   cat ${PGPDIR}/pgp-key.private | gpg --import
   # cleanup security
   rm -f ${PGPDIR}/pgp-key.private
-  cd ${APTREPO}
+  cd ${APTMIRROR}
   # allow glob
   set +f
-  ln -s ${ARCHIVES}/*.deb pool/main
+  ln -s ${APTPKGS}/*.deb pool/main
   # forbid glob again
   set -f
-  # assert: pwd is ${APTREPO} ...
+  # assert: pwd is ${APTMIRROR} ...
   for s in dists/${APTSOURCE}; do
     for d in $s/main/binary-${arch}; do
       dpkg-scanpackages --arch ${arch} pool/ > $d/Packages
@@ -116,50 +88,42 @@ function create_mirror_apt_repo { #
 
 # main
 
+# copy debs from $APTPKGS and install
+copy_to_cache_and_install "${installedapts[@]}"
+
+# set up mirror
 create_mirror_apt_repo
-# make the mirror the first choice for apt loading
+echo "apt mirror is created at ${APTMIRROR}"
+
+# make mirror the first choice for apt loading
 mv /etc/apt/sources.list /etc/apt/sources.list.d/kali-rolling.list
 echo "deb [arch=${arch} signed-by=${PGPDIR}/pgp-key.public] ${APTURL} ${APTSOURCE} main" > /etc/apt/sources.list
+
+apt-get -qq update
+
+poetry config virtualenvs.in-project true
 cd ${VENV}
 eval $(poetry env activate)
-cd ${LOCALREPOS}
+
 #
 # apt
-python -m http.server --bind $localhost $aptport > ${APTLOG} 2>&1 &
+cd ${MIRRORS}
+nohup python -m http.server --bind $localhost $aptport > ${APTLOG} 2>&1 &
 # wait until the port is listening
 timeout 5 sh -c 'until nc -z $0 $1; do sleep 1; done' \
   $localhost $aptport
-apt-get -yqq update
+
+echo "apt mirror is up."
 #
 # pypi
-cd ${PYPIREPO}
-python -m http.server --bind $localhost $pypiport > ${PYPILOG} 2>&1 &
+cd ${PYPIMIRROR}
+pypi-mirror create -d $PYPIPKGS -m simple
+echo "pypi mirror is created at ${PYPIMIRROR}"
+nohup python -m http.server --bind $localhost $pypiport > ${PYPILOG} 2>&1 &
 # wait until the port is listening
 timeout 5 sh -c 'until nc -z $0 $1; do sleep 1; done' \
   $localhost $pypiport
 cd ${VENV}
 poetry source add --priority=explicit ${PYPISOURCE} ${PYPIURL}
-# main loop
-if [[ $# -eq 0 ]]; then
-  while true; do sleep 100; done
-else
-  exec "$@"
-fi
 
-# apt pullstore test
-apt-get -yqq install --download-only --no-install-recommends \
-  wget tmux gron sudo
-# apt install for pypi for pullstore
-apt-get -yqq install --no-install-recommends python3-pip python3-poetry
-# pypi mirror
-VENV=/opt/venv
-mkdir -p $VENV
-cd $VENV
-poetry init --python=">=3.13,<4.0" --no-interaction -vvv
-# consider morgan as an alt to python-pypi-mirror
-poetry add python-pypi-mirror
-eval ${poetry env activate}
-pypi-mirror download -d downloads \
-  requests GitPython bc-python-hcl2 giturlparse python-gitlab \
-  xmltodict elasticsearch8 boto3
-pypi-mirror create -d downloads -m simple
+echo "pypi mirror is up."
