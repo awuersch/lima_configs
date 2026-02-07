@@ -65,6 +65,48 @@ installedapts=($aptapts $pypiapts $mirrorapts)
 pypipypis="pipgrip python-pypi-mirror"
 otherapts="vim"
 
+# Required: Ensure jq is installed (sudo apt-get install jq)
+
+logging=on
+debug=on
+log_ecs() {
+  local level=$1
+
+  # ignore debug msgs unless debug is on
+  [[ X"debug" != X"on" || X"${level}" != X"debug" ]] || return 0
+
+  # just echo if logging is off
+  [[ X"${logging}" == X"on" ]] || { echo "$2"; return 0; }
+
+  # verify jq is installed, else just echo
+  dpkg -s jq > /dev/null 2>&1 || { echo "$2"; return 0; }
+
+  local message=$2
+  local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+ 
+  # Capture caller information (source file and line number)
+  local source_file="${BASH_SOURCE[1]##*/}"
+  local source_line="${BASH_LINENO[0]}"
+
+  # Construct ECS compliant JSON using jq
+  jq -nc \
+    --arg ts "$timestamp" \
+    --arg lvl "$level" \
+    --arg msg "$message" \
+    --arg file "$source_file" \
+    --arg line "$source_line" \
+    '{
+      "@timestamp": $ts,
+      "log.level": $lvl,
+      "message": $msg,
+      "ecs.version": "8.0.0",
+      "log.origin": {
+        "file.name": $file,
+        "file.line": ($line | tonumber)
+      }
+    }'
+}
+
 function copy_to_cache_and_install { # apts
   local apt apts="$@"
   cd $APTPKGS
@@ -73,9 +115,9 @@ function copy_to_cache_and_install { # apts
     cp $(tail +2 $APTS/uris/${apt}.tsv | cut -d '	' -f2) $APTCACHE
   done
   # install with no messages
-  echo "installing apt packages $apts ..."
+  log_ecs info "installing apt packages $apts ..."
   apt-get -yqq install --no-install-recommends $apts < /dev/null > /dev/null
-  echo "$apts are installed."
+  log_ecs info "$apts are installed."
   # remove from cache
   # allow glob
   set +f
@@ -85,9 +127,12 @@ function copy_to_cache_and_install { # apts
   fi
   # forbid glob again
   set -f
-  cd -
 }
+
+# Example Usage
+# log_ecs "info" "Starting script process"
+# log_ecs "error" "Failed to connect to database"
 
 export DEBIAN_FRONTEND=noninteractive
 
-apt-get -yqq update
+apt-get -qq update

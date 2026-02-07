@@ -46,10 +46,12 @@ done
   >&2 echo "not running"
   exit 1
 }
-nerdctl cp $MIRRORS/$NAME.sh $NAME:/tmp/entrypoint.sh
+
+# setup entrypoint and other scripts
+nerdctl cp $MIRRORS/$NAME.sh $NAME:/tmp/$NAME.sh
 for file in apt-rdepends.sh shared.sh; do
   nerdctl cp $MIRRORS/$file $NAME:/tmp/$file
 done
 
-# run entrypoint
-nerdctl exec $NAME -- bash -c 'bash /tmp/entrypoint.sh'
+# run $NAME as entrypoint
+nerdctl exec $NAME -- bash -c "bash /tmp/$NAME.sh"

@@ -41,21 +41,21 @@ function contains_element { # match arr
 # main
 
 # get dependencies and download to-be-installeds
-echo "getting apt package dependencies"
+log_ecs info "getting apt package dependencies"
 
 for pkg in "${installedapts[@]}"; do
   dst="$APTS/uris/${pkg}.tsv"
   get_depends ${pkg} ${dst}
 done
 
-echo "apt dependencies are in $APTS/uris"
+log_ecs info "apt dependencies are in $APTS/uris"
 
-echo "downloading apt packages ${installedapts[@]}"
+log_ecs info "downloading apt packages ${installedapts[@]}"
 apt-get -qq install \
   --download-only --no-install-recommends \
   "${installedapts[@]}"
 
-echo "${installedapts[@]} are downloaded."
+log_ecs info "${installedapts[@]} are downloaded."
 
 # allow glob
 set +f; shopt -s nullglob
@@ -63,13 +63,16 @@ mv $APTCACHE/*.deb $APTPKGS
 # forbid glob again
 shopt -u nullglob; set -f
 
-echo "apt debs are in $APTPKGS"
+log_ecs info "apt debs are in $APTPKGS"
 
 # apt apt installing with no install messages
 
-echo "installing apt packages $aptapts ..."
+log_ecs info "installing apt packages $aptapts ..."
 apt-get -qq install --no-install-recommends $aptapts < /dev/null > /dev/null
-echo "$aptapts are installed."
+
+# note: can use log_ecs() from hereon in now that jq is installed
+
+log_ecs info "$aptapts are installed."
 
 # add apt repositories
 #
@@ -91,7 +94,7 @@ echo $TZ > /etc/timezone
 apt-get -qq update
 apt-get -qq upgrade < /dev/null > /dev/null
 
-echo "priming, i.e., getting apt dependencies from manifest."
+log_ecs info "priming, i.e., getting apt dependencies from manifest."
 
 # ".tsv" files are per-line tab-separated values with a header line on top
 # get package version metadata (avoiding header line by using tail +2)
@@ -114,23 +117,23 @@ while IFS='	' read -a line; do
   get_depends "${pkgver}" $dst
 done < /tmp/xx
 
-echo "apts are primed"
+log_ecs info "apts are primed"
 
 # pypi apt installing with no install messages
 
-echo "installing apt packages $pypiapts ..."
+log_ecs info "installing apt packages $pypiapts ..."
 apt-get -qq install --no-install-recommends $pypiapts < /dev/null > /dev/null
-echo "$pypiapts are installed."
+log_ecs info "$pypiapts are installed."
 
-echo "installing pypi packages $pypipypis ..."
+log_ecs info "installing pypi packages $pypipypis ..."
 poetry config virtualenvs.in-project true
 cd $VENV
 poetry init --python=">=3.13,<4.0" --no-interaction -vvv
 poetry add $pypipypis --quiet --no-interaction
-echo "$pypipypis are installed."
+log_ecs info "python $pypipypis are installed."
 eval $(poetry env activate)
 
-echo "priming, i.e., getting pypi dependencies from manifest."
+log_ecs info "priming, i.e., getting pypi dependencies from manifest."
 
 tail +2 $MANIFESTS/pypi.tsv > /tmp/xx
 while IFS='	' read -a line; do
@@ -154,7 +157,7 @@ while IFS='	' read -a line; do
   ((1==a[0])) && rm -f $dst
 done < /tmp/xx
 
-echo "pypis are primed"
+log_ecs info "pypis are primed"
 
 dst=$RAWS/raw.tsv
 tail +2 $MANIFESTS/raw.tsv > /tmp/xx
@@ -168,9 +171,9 @@ tail +2 $MANIFESTS/raw.tsv > /tmp/xx
     then
      echo "${line[@]}"
     else
-      >&2 echo "uri $uri not found"
+     log_ecs error "uri $uri not found"
     fi || true
   done < /tmp/xx
 } | awk -v OFS='\t' '{print $1,$2,$3}' > $dst
 
-echo "raws are primed"
+log_ecs info "raws are primed"
