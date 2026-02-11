@@ -20,7 +20,7 @@ GOSRC=${rootgosrcdir}
 GOSUMDB=sum.golang.org
 
 # versions for go and go installs
-GO_VERSION=1.25.6
+GO_VERSION=1.26.0
 JB_VERSION=0.6.0
 JSONNET_VERSION=0.21.0
 YQ_VERSION=4.48.1

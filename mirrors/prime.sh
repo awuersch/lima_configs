@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 set -euf
 
-. /tmp/shared.sh
+. /mnt/here/shared.sh
 
 # the magic command for apt
 function geturis { # pkgver

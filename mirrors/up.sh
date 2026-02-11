@@ -9,12 +9,12 @@ function usage { # containername
 (($#==0)) && usage
 NAME=$1; shift
 
-HOSTHOME=/Users/tony
+HOSTHOME=$HOME
 CLONES=workspace/src/git/github.com
 REPO=awuersch/lima_configs
 MIRRORS=$HOSTHOME/$CLONES/$REPO/mirrors
 STORAGE=/mnt/archive
-PLATFORM=arm64
+PLATFORM=amd64
 
 # pull image
 IMG="kalilinux/kali-rolling"
@@ -27,7 +27,9 @@ nerdctl run -d \
   --name $NAME \
   --platform $PLATFORM \
   --mount type=bind,source=$MIRRORS/manifests,target=/mnt/manifests,readonly \
+  --mount type=bind,source=$MIRRORS,target=/mnt/here,readonly \
   --mount type=bind,source=$STORAGE,target=$STORAGE \
+  --entrypoint /mnt/here/$NAME.sh \
   $IMG \
   bash -c \
   'while true; do sleep 100; done'
@@ -46,12 +48,3 @@ done
   >&2 echo "not running"
   exit 1
 }
-
-# setup entrypoint and other scripts
-nerdctl cp $MIRRORS/$NAME.sh $NAME:/tmp/$NAME.sh
-for file in apt-rdepends.sh shared.sh; do
-  nerdctl cp $MIRRORS/$file $NAME:/tmp/$file
-done
-
-# run $NAME as entrypoint
-nerdctl exec $NAME -- bash -c "bash /tmp/$NAME.sh"

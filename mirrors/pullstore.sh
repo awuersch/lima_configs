@@ -2,7 +2,7 @@
 set -euf
 
 # common defines used by prime and pullstore
-. /tmp/shared.sh
+. /mnt/here/shared.sh
 
 # copy debs from $APTPKGS and install
 copy_to_cache_and_install $aptapts

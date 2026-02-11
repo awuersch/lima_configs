@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euf -o pipefail
 
-. /tmp/shared.sh
+. /mnt/here/shared.sh
 
 # cf:
 # https://github.com/earthly/example-apt-repo/blob/main/Earthfile
@@ -138,7 +138,10 @@ nohup python -m http.server --bind $localhost $pypiport > ${PYPILOG} 2>&1 &
 wait_for_localhost_connection 5 $pypiport
 cd ${VENV}
 poetry source add --priority=primary ${PYPISOURCE} ${PYPIURL}
-poetry source add --priority=supplemental pypi https://pypi.org/simple
+poetry source add --priority=supplemental pypi-public https://pypi.org/simple
 poetry lock
 
 log_ecs info "pypi mirror is up."
+
+# continue ad nauseam
+while true; do sleep 100; done
