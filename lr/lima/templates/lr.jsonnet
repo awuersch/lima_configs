@@ -17,16 +17,6 @@ local
   model = "macbookpro";
 
 {
-  # Example to run ubuntu using vmType: vz instead of qemu (Default)
-  # This example requires Lima v0.14.0 or later and macOS 13.
-  # vmType: "vz": "Virtualization.framework" is a Apple framework that allows running Linux VMs on macOS 11. See https://developer.apple.com/documentation/virtualization
-  # vmType: "qemu" (default): QEMU is a machine virtualizer that emulates a computer system. See https://www.qemu.org/
-
-  vmType: "vz",
-  rosetta: {
-    enabled: true,
-    binfmt: true
-  },
   images: locations.images[args.os][args.images_version],
   cpus: resources.macbookpro.cpus,
   memory: resources.macbookpro.memory,
