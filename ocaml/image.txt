@@ -1,0 +1,1 @@
+ocaml/opam:archlinux-ocaml-5.5
